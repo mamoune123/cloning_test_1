@@ -56,11 +56,103 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
 
-const generate = document.getElementById('generate')
-generate.addEventListener('click', function() {
-  var text = "My name is mamoune, what are you doing today ?";
-  send3Data(text);
-});
+
+
+
+// Card data
+const cards = [
+    {
+      name: 'The Lion and the Mouse',
+      title: 'Aesop\'s Fables',
+      description: 'A lion helps a mouse',
+      image: '/img/avataaars.png',
+      text: 'a lion rane into a mouse',
+      id : '1'
+    },
+    {
+      name: 'The Tortoise and the Hare',
+      title: 'Aesop\'s Fables',
+      description: 'A slow tortoise wins a race against a fast hare',
+      image: '/img/avataaars.png',
+      text: 'the tortoise is speedy',
+      id : '2'
+    },
+    {
+        name: 'The Boy Who Cried Wolf',
+        title: 'Aesop\'s Fables',
+        description: 'A boy learns the consequences of lying',
+        image: '/img/wolf.jpg',
+        text: 'HELP ! HELP ! there is a wolf !',
+        id : '3'
+      },
+      {
+        name: 'The Ant and the Grasshopper',
+        title: 'Aesop\'s Fables',
+        description: 'Creative genius',
+        image: '/img/avataaars.png',
+        text: 'An ant prepares for winter while a grasshopper enjoys the summer',
+        id : '4'
+      },
+      {
+        name: 'The Ugly Duckling',
+        title: 'Hans Christian Andersen',
+        description: 'A duckling discovers its true identity',
+        image: '/img/duck.jpg',
+        text: 'duck ! duck ! you are so ugly !',
+        id : '5'
+      }
+    // Add more card objects as needed
+  ];
+  
+  // Function to generate the HTML structure for the cards
+  function generateCardHTML(card) {
+    return `
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-card-front">
+            <img src="${card.image}" alt="Avatar" style="width:300px;height:300px;border-radius: 60px;">
+          </div>
+          <div class="flip-card-back">
+            <h1>${card.name}</h1>
+            <p>${card.title}</p>
+            <p>${card.description}</p>
+            
+            <button id="${card.id}" class="send-text-btn btn btn-primary" data-text="${card.text}">Generate Story</button>
+          </div>
+        </div>  
+      </div>
+    `;
+  }
+  
+  // Function to generate the card container
+  function generateCardContainerHTML(cards) {
+    return `
+      <div class="card-container">
+        ${cards.map(generateCardHTML).join('')}
+      </div>
+    `;
+  }
+  
+  // Get the container element
+  const container = document.getElementById('cardContainer');
+  
+  // Generate the card container HTML and insert it into the container element
+  container.innerHTML = generateCardContainerHTML(cards);
+  
+
+
+
+  
+  
+  
+//card send
+cards.forEach((card) => {
+    const generateBtn = document.getElementById(card.id);
+    generateBtn.addEventListener('click', function() {
+      const text = card.text;
+      send3Data(text);
+    });
+  });
 
 function send3Data(text) {
   $.ajax({
@@ -77,9 +169,3 @@ function send3Data(text) {
     }
   });
 }
-
-
-
-  
-  
-  
