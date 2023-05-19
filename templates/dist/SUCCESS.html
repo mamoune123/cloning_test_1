@@ -37,35 +37,14 @@
         <!-- Masthead-->
         <header class="masthead bg-primary text-white text-center">
             <div class="container d-flex align-items-center flex-column">
-                <h1 class="text-center mb-4">1er étape : Enregistre ta voix</h1>
-                <div class="form-group">
-                  <label for="Gender">Sexe:</label>
-                  <select id="Gender" class="form-select">
-                    <option selected disabled>Choose...</option>
-                    <option value="1">Female</option>
-                    <option value="2">Male</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="Accent">Accent:</label>
-                  <select id="Accent" class="form-select">
-                    <option selected disabled>Choose...</option>
-                    <option value="1">American</option>
-                    <option value="2">British</option>
-                  </select>
-                </div>
-                <br>
-                <div class="d-flex justify-content-center">
-                  <div class="btn-group">
-                    <button id="startRecording" class="btn btn-danger">Start recording</button>
-                    <button id="stopRecording" class="btn btn-danger" disabled>Stop recording</button>
-                    <button id="PlayRecording" class="btn btn-danger">Play recording</button>
+               <div>
+                <h1 class="text-center mb-4">DONE.</h1>
+                <div class="d-flex align-items-center">
+                    <audio id="output-audio" src="/output/voice.wav" class="flex-grow-1 mr-3" controls></audio>
+                    <button id="button_play" class="btn btn-primary" onclick="toggleAudio()">Play/Pause the synthesized voice</button>
                   </div>
-                  <br>
-                </div>
-                <button type="submit" id="validate" class="btn btn-danger mt-4">Validate Upload</button>
-              </div>
-              
+               </div>
+            </div>
         </header>
         <!-- Portfolio Section-->
         <!-- <section class="page-section portfolio" id="portfolio">
@@ -362,7 +341,6 @@
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
-        <script src="js/scripts.js"></script>
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <!-- * *                               SB Forms JS                               * *-->
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
@@ -370,5 +348,6 @@
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="js/scripts3.js"></script>
     </body>
 </html>

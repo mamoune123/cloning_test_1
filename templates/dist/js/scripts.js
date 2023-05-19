@@ -53,172 +53,102 @@ window.addEventListener('DOMContentLoaded', event => {
 
 });
 
-//-----------------------------file selection : 
+///-------------
+    navigator
+        .mediaDevices
+        .getUserMedia({audio: true})
+        .then(stream => { handlerFunction(stream) });
 
-const realFileBtn = document.getElementById("real-file");
-const customBtn = document.getElementById("custom-button");
-const customTxt = document.getElementById("custom-text");
-const fileListe = document.getElementById("file-list");
-
-let files = [];
-
-customBtn.addEventListener("click", function() {
-realFileBtn.click();
-});
-
-realFileBtn.addEventListener("change", function() {
-files = [...realFileBtn.files];
-if (files.length > 0) {
-    let html = "";
-    files.forEach(file => {
-    html += `<li>${file.name}</li>`;
-    });
-    fileListe.innerHTML = html;
-    customTxt.innerHTML = files.length + " file(s) selected";
-} else {
-    fileListe.innerHTML = "";
-    customTxt.innerHTML = "No file chosen, yet.";
-}
-});
-
-
-  
-  
-  
-//-------------------record stop 
-// Get references to the buttons and the audio element
-// Get the necessary elements
-const recordBtn = document.getElementById("record-button");
-const playBtn = document.getElementById("play-button");
-const sendBtn = document.getElementById("send-button");
-
-let recordedAudio = null;
-
-// Handle the record button click event
-recordBtn.addEventListener("click", function() {
-  if (recordBtn.innerHTML === 'RECORD') {
-    // Start recording
-    recordBtn.innerHTML = 'STOP RECORDING';
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(function(stream) {
-        const mediaRecorder = new MediaRecorder(stream);
-        const chunks = [];
-
-        mediaRecorder.start();
-
-        mediaRecorder.addEventListener("dataavailable", function(event) {
-          chunks.push(event.data);
-        });
-
-        mediaRecorder.addEventListener("stop", function() {
-          // Convert the recorded audio chunks to a single Blob
-          const recordedAudioBlob = new Blob(chunks, { type: "audio/wav" });
-          
-          // Create a new File object from the Blob
-          const recordedAudioFile = new File([recordedAudioBlob], "recorded_audio.wav");
-          
-          // Store the recorded audio file in the recordedAudio variable
-          recordedAudio = recordedAudioFile;
-        });
-
-        recordBtn.addEventListener("click", function() {
-          // Stop recording
-          mediaRecorder.stop();
-          recordBtn.innerHTML = 'RECORD';
-        });
-      })
-      .catch(function(err) {
-        console.log("An error occurred: " + err);
-      });
-  } else {
-    // Stop recording
-    mediaRecorder.stop();
-    recordBtn.innerHTML = 'RECORD';
-  }
-});
-
-
-// Handle the play button click event
-playBtn.addEventListener("click", function() {
-  if (recordedAudio) {
-    const audioPlayer = new Audio(URL.createObjectURL(recordedAudio));
-    audioPlayer.play();
-  }
-});
-
-// Handle the send button click event
-sendBtn.addEventListener("click", function() {
-  if (recordedAudio) {
-    // Create a Blob URL for the recorded audio data
-    const url = URL.createObjectURL(recordedAudio);
-
-    // Create a new anchor element
-    const a = document.createElement('a');
-    
-    // Set the href attribute to the Blob URL
-    a.href = url;
-    
-    // Set the download attribute to the filename
-    a.download = 'recorded_audio.wav';
-    
-    // Simulate a click on the anchor element to initiate the download
-    a.click();
-  }
-});
-
-
-
-
-
-// Handle the form submission event
-
-
-
-
-
-
-
-
-  
-//--------------------------------validate the upload imput is not empty 
-function validateForm() {
-  var textInput = document.getElementsByName('text')[0];
-  var realFileInput = document.getElementById('real-file');
-
-  if (textInput.value == "" && realFileInput.files.length == 0) {
-      document.getElementById("error-message").innerHTML = "Please enter a story or select at least one file.";
-      return false;
-  } else {
-      return true;
-  }
-}
-
-
-
-//-----------------------------audio play pause.
-function toggleAudio() {
-    var audio = document.getElementById("output-audio");
-    var playButton = document.getElementById("button_play");
-    
-    if (audio.paused) {
-      audio.play();
-      playButton.textContent = "Pause the synthesized voice";
-    } else {
-      audio.pause();
-      playButton.textContent = "Play the synthesized voice";
+    function handlerFunction(stream) {
+        rec = new MediaRecorder(stream);
+        rec.ondataavailable = e => {
+            audioChunks.push(e.data);
+        }
     }
-  }
+    let isRecording = false;
+    document.getElementById('validate').addEventListener('click', function() {
+        if(!isRecording){
+            alert("Please Record your Voice first");
+            return;
+        }
+     var selectedOption1 = document.getElementById('Gender').options[document.getElementById('Gender').selectedIndex].text;
+     var selectedOption2 = document.getElementById('Accent').options[document.getElementById('Accent').selectedIndex].text;
+      send2Data(selectedOption1,selectedOption2)
+      console.log("Sending data to Flask...");
+      let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
+      sendData(blob);
+      window.location.href = 'page2.html';
+    });
+    function send2Data(selectedOption,selectedOption1) {
+      $.ajax({
+        type: 'POST',
+        url: '/save_selection',
+        data: { option: selectedOption ,option2: selectedOption1},
+        success: function(response) {
+          console.log(response);
+          // Handle the response from the server
+        },
+        error: function(error) {
+          console.log('Error sending data to the server.');
+          // Handle the error condition
+        }
+      });
+    }
 
-//---------------try
+    function sendData(data) {
+        var form = new FormData();
+        form.append('file', data, 'data.mp3');
+        form.append('title', 'data.mp3');
+        //Chrome inspector shows that the post data includes a file and a title.
+        $.ajax({
+            type: 'POST',
+            url: '/save-record',
+            data: form,
+            cache: false,
+            processData: false,
+            contentType: false
+        }).done(function(data) {
+            console.log(data);
+        });
+    }
 
-const myForm = document.getElementById("myForm");
-const generateStoryBtn = document.getElementById("generate-story-button");
+    startRecording.onclick = e => {
+        console.log('Recording are started..');
+        isRecording = true;
+        startRecording.disabled = true;
+        stopRecording.disabled = false;
+        audioChunks = [];
+        rec.start();
+    };
 
-generateStoryBtn.addEventListener("click", function() {
-  myForm.submit();
-});
-  
+    stopRecording.onclick = e => {
+        console.log("Recording are stopped.");
+        startRecording.disabled = false;
+        stopRecording.disabled = true;
+        rec.stop();
+    };
+var audioPlayer = document.createElement('audio');
+document.body.appendChild(audioPlayer);
+
+// Function to handle playing the recorded audio
+function playRecording() {
+    if(!isRecording ){
+        alert("Please record your voice first");
+        return;
+    }
+  var audioBlob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+  var audioURL = URL.createObjectURL(audioBlob);
+  audioPlayer.src = audioURL;
+  audioPlayer.play();
+}
+
+// Event handler for the "PlayRecording" button
+PlayRecording.onclick = function(e) {
+  console.log("Playing the recorded audio");
+
+  playRecording();
+};
+
 
   
   
