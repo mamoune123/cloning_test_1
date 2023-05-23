@@ -95,7 +95,7 @@ def download_output():
 
 @app.route('/')
 def home():
-    return render_template("dist/index.html")
+    return render_template("dist/HOME.html")
 
 @app.route('/save-record', methods=['POST'])
 def save_record():

@@ -66,7 +66,7 @@ const cards = [
       title: 'Aesop\'s Fables',
       description: 'A lion helps a mouse',
       image: '/img/avataaars.png',
-      text: 'a lion rane into a mouse',
+      text: 'Hoy en mi ventana brilla el sol. Y el corazón se pone triste contemplando la ciudad',
       id : '1'
     },
     {

@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@lottiefiles/lottie-interactivity": "^1.6.2",
+    "@lottiefiles/lottie-player": "^1.7.1",
     "startbootstrap-freelancer": "^7.0.7"
   }
 }

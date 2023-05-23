@@ -52,33 +52,37 @@ window.addEventListener('DOMContentLoaded', event => {
     });
 
 });
+function handleSelectionChange() {
+    var select1 = document.getElementById("Gender");
+    var select2 = document.getElementById("select2");
+  
+    // Check the selected value of select1
+    var selectedValue = select1.value;
+  
+    // Show or hide select2 based on the selected value of select1
+    if (selectedValue === "option2") {
+      select2.style.display = "block";
+    } else {
+      select2.style.display = "none";
+    }
+  }
+
+
+
+
 
 ///-------------
-    navigator
-        .mediaDevices
-        .getUserMedia({audio: true})
-        .then(stream => { handlerFunction(stream) });
 
-    function handlerFunction(stream) {
-        rec = new MediaRecorder(stream);
-        rec.ondataavailable = e => {
-            audioChunks.push(e.data);
-        }
-    }
-    let isRecording = false;
+
+
+    
     document.getElementById('validate').addEventListener('click', function() {
-        if(!isRecording){
-            alert("Please Record your Voice first");
-            return;
-        }
      var selectedOption1 = document.getElementById('Gender').options[document.getElementById('Gender').selectedIndex].text;
      var selectedOption2 = document.getElementById('Accent').options[document.getElementById('Accent').selectedIndex].text;
       send2Data(selectedOption1,selectedOption2)
       console.log("Sending data to Flask...");
-      let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
-      sendData(blob);
-      window.location.href = 'page2.html';
     });
+
     function send2Data(selectedOption,selectedOption1) {
       $.ajax({
         type: 'POST',
@@ -95,61 +99,36 @@ window.addEventListener('DOMContentLoaded', event => {
       });
     }
 
-    function sendData(data) {
-        var form = new FormData();
-        form.append('file', data, 'data.mp3');
-        form.append('title', 'data.mp3');
-        //Chrome inspector shows that the post data includes a file and a title.
-        $.ajax({
-            type: 'POST',
-            url: '/save-record',
-            data: form,
-            cache: false,
-            processData: false,
-            contentType: false
-        }).done(function(data) {
-            console.log(data);
-        });
+function handleGenderChange() {
+    var genderSelect = document.getElementById("Gender");
+    var languageSection = document.getElementById("languageSection");
+  
+    if (genderSelect.value === "female" || genderSelect.value === "male") {
+      languageSection.style.display = "block";
+    } else {
+      languageSection.style.display = "none";
     }
-
-    startRecording.onclick = e => {
-        console.log('Recording are started..');
-        isRecording = true;
-        startRecording.disabled = true;
-        stopRecording.disabled = false;
-        audioChunks = [];
-        rec.start();
-    };
-
-    stopRecording.onclick = e => {
-        console.log("Recording are stopped.");
-        startRecording.disabled = false;
-        stopRecording.disabled = true;
-        rec.stop();
-    };
-var audioPlayer = document.createElement('audio');
-document.body.appendChild(audioPlayer);
-
-// Function to handle playing the recorded audio
-function playRecording() {
-    if(!isRecording ){
-        alert("Please record your voice first");
-        return;
+  }
+  
+  function handleLanguageChange() {
+    var languageSelect = document.getElementById("Language");
+    var accentSection = document.getElementById("accentSection");
+  
+    if (languageSelect.value === "english") {
+      accentSection.style.display = "block";
+    } else {
+      accentSection.style.display = "none";
     }
-  var audioBlob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
-  var audioURL = URL.createObjectURL(audioBlob);
-  audioPlayer.src = audioURL;
-  audioPlayer.play();
-}
+    var selectedOption = document.getElementById("Language").value;
+  localStorage.setItem("selectedLanguage", selectedOption);
+  console.log(selectedOption);
+  }
+  var micButton = document.getElementById("micButton");
+  var isPulsing = false;
 
-// Event handler for the "PlayRecording" button
-PlayRecording.onclick = function(e) {
-  console.log("Playing the recorded audio");
-
-  playRecording();
-};
-
-
+  
+  
+  
   
   
   
