@@ -1,13 +1,12 @@
-from flask import Flask, request, jsonify, render_template, send_file, redirect, flash
+from flask import Flask, request, jsonify, render_template, send_file, redirect, flash, url_for
 import uuid
 from werkzeug.utils import secure_filename
-from wtforms import FileField, SubmitField, StringField
 from flask_wtf import FlaskForm
 import requests
 import os
-from werkzeug.datastructures import FileStorage
 import json
 import shutil
+import psycopg2
 XI_API_KEY = "067b3f82874d1f95f8ba0945f192d5bd"
 def models_imp(XI_API_KEY):
     url = "https://api.elevenlabs.io/v1/models"
@@ -85,17 +84,76 @@ Text_data = ''
 CHUNK_SIZE = 1024
 app.secret_key = 'supersecretkey'
 app.config['records']='/Users/mac/Desktop/Cloning_test/records'
-
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'wma', 'au', 'aiff', 'm4a'}
+db_host = 'localhost'
+db_port = 5432 
+db_name = 'VoiceStory'
+db_user = 'postgres'
+db_password = '1234'
 
+@app.route('/home')
+def home():
+    return render_template("dist/HOME.html")
+@app.route('/login1', methods=['POST'])
+def login1():
+    # Get form data
+    username = request.form['user']
+    password = request.form['pass']
+
+    # Connect to the database
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+
+    # Check if the username and password match
+    cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+    user = cursor.fetchone()
+
+    if user:
+        # Login successful, redirect to a logged-in page
+        cursor.close()
+        conn.close()
+        return redirect(url_for('home', username=username))
+       
+    else:
+        cursor.close()
+        conn.close()
+        # Login failed, display an error message
+        error_message = "Invalid username or password. Please try again."
+        return render_template('dist/login.html', error=error_message)
 
 @app.route('/download_output')
 def download_output():
     return send_file('templates/dist/output/voice.wav', as_attachment=True)
 
+@app.route('/register')
+def register():
+    return render_template("dist/register.html")
+@app.route('/signup', methods=['POST'])
+def signup():
+    # Get form data
+    username = request.form['user']
+    password = request.form['pass']
+
+    # Connect to the database
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+
+    # Insert user data into the database
+    cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+
+    # Commit the transaction
+    conn.commit()
+
+    # Close the cursor and connection
+    cursor.close()
+    conn.close()
+
+    # Redirect or render a success page
+    return render_template('dist/login.html')
+
 @app.route('/')
-def home():
-    return render_template("dist/HOME.html")
+def start():
+    return render_template('dist/login.html')
 
 @app.route('/save-record', methods=['POST'])
 def save_record():
