@@ -55,81 +55,56 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
 
+const themes =[
+  {
+    name: 'comptes et autres',
+    image:'/img/duck.png',
+  },
+  {
+    name: 'fable mythe et literature',
+    image:'/img/duck.png',
+  },
+  {
+    name: 'heroine et heros',
+    image:'/img/duck.png',
+  },
+  {
+    name: 'les animaux',
+    image:'/img/duck.png',
+  }
+];
 
 
 
 
-// Card data
-const cards = [
-    {
-      name: 'The Lion and the Mouse',
-      title: 'Aesop\'s Fables',
-      description: 'A lion helps a mouse',
-      image: '/img/avataaars.png',
-      text: 'Hoy en mi ventana brilla el sol. Y el corazón se pone triste contemplando la ciudad',
-      id : '1'
-    },
-    {
-      name: 'The Tortoise and the Hare',
-      title: 'Aesop\'s Fables',
-      description: 'A slow tortoise wins a race against a fast hare',
-      image: '/img/avataaars.png',
-      text: 'the tortoise is speedy',
-      id : '2'
-    },
-    {
-        name: 'The Boy Who Cried Wolf',
-        title: 'Aesop\'s Fables',
-        description: 'A boy learns the consequences of lying',
-        image: '/img/wolf.jpg',
-        text: 'HELP ! HELP ! there is a wolf !',
-        id : '3'
-      },
-      {
-        name: 'The Ant and the Grasshopper',
-        title: 'Aesop\'s Fables',
-        description: 'Creative genius',
-        image: '/img/avataaars.png',
-        text: 'An ant prepares for winter while a grasshopper enjoys the summer',
-        id : '4'
-      },
-      {
-        name: 'The Ugly Duckling',
-        title: 'Hans Christian Andersen',
-        description: 'A duckling discovers its true identity',
-        image: '/img/duck.jpg',
-        text: 'duck ! duck ! you are so ugly !',
-        id : '5'
-      }
-    // Add more card objects as needed
-  ];
+
   
   // Function to generate the HTML structure for the cards
-  function generateCardHTML(card) {
+  function generateCardHTML(themes) {
     return `
-      <div class="flip-card">
-        <div class="flip-card-inner">
-          <div class="flip-card-front">
-            <img src="${card.image}" alt="Avatar" style="width:300px;height:300px;border-radius: 60px;">
-          </div>
-          <div class="flip-card-back">
-            <h1>${card.name}</h1>
-            <p>${card.title}</p>
-            <p>${card.description}</p>
-            
-            <button id="${card.id}" class="send-text-btn btn btn-primary" data-text="${card.text}">Generate Story</button>
-          </div>
-        </div>  
+    
+    <div class="cards_item">
+    <div class="cardHistoire">
+    <a href="comptes.html">
+      <img class="card-image" src="${themes.image}" alt="Image" onclick="saveTheme('${themes.name}')">
+      </a>
+      <div class="card_content">
+        <h2 class="card_title">${themes.name}</h2>
       </div>
-    `;
+    </div>
+  </div>
+ `;
+  }
+  function saveTheme(themeName) {
+    localStorage.setItem('selectedTheme', themeName);
   }
   
   // Function to generate the card container
-  function generateCardContainerHTML(cards) {
+  function generateCardContainerHTML(themes) {
     return `
-      <div class="card-container">
-        ${cards.map(generateCardHTML).join('')}
-      </div>
+      
+        ${themes.map(generateCardHTML).join('')}
+      
     `;
   }
   
@@ -137,52 +112,7 @@ const cards = [
   const container = document.getElementById('cardContainer');
   
   // Generate the card container HTML and insert it into the container element
-  container.innerHTML = generateCardContainerHTML(cards);
+  container.innerHTML = generateCardContainerHTML(themes);
   
 
 
-
-  
-  
-  
-//card send
-cards.forEach((card) => {
-    const generateBtn = document.getElementById(card.id);
-    generateBtn.addEventListener('click', function() {
-      const text = card.text;
-      send3Data(text);
-    });
-  });
-
-function send3Data(text) {
-  $.ajax({
-    type: 'POST',
-    url: '/get_data',
-    contentType: 'application/json',
-    data: JSON.stringify({ text: text }),
-    success: function(response) {
-      console.log(response);
-      window.location.href = 'waiting.html';
-    },
-    error: function(error) {
-      console.log('Error sending data to the server.');
-    }
-  });
-}
-window.addEventListener('DOMContentLoaded', event => {
-
-  // Toggle the side navigation
-  const sidebarToggle = document.body.querySelector('#sidebarToggle');
-  if (sidebarToggle) {
-      // Uncomment Below to persist sidebar toggle between refreshes
-      // if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
-      //     document.body.classList.toggle('sb-sidenav-toggled');
-      // }
-      sidebarToggle.addEventListener('click', event => {
-          event.preventDefault();
-          document.body.classList.toggle('sb-sidenav-toggled');
-          localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sb-sidenav-toggled'));
-      });
-  }
-
-});

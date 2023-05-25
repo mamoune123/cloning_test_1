@@ -91,6 +91,34 @@ db_name = 'VoiceStory'
 db_user = 'postgres'
 db_password = '1234'
 
+
+@app.route('/forgot',methods=['POST'])
+def forget():
+    username = request.form['user']
+    password = request.form['pass']
+    
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+    select_query = "SELECT username FROM users WHERE username = %s"
+    cursor.execute(select_query, (username,))
+    result = cursor.fetchone()
+    if result:
+        # Username exists, perform the password change logic and update the database
+        update_query = "UPDATE users SET password = %s WHERE username = %s"
+        cursor.execute(update_query, (password, username))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        success_message = "Password changed successfully!"
+        return redirect(url_for('start', success_message=success_message))
+    else:
+        # Username doesn't exist, display an error message
+        cursor.close()
+        conn.close()
+        print('no matching for the usernam')
+        return render_template('dist/forget.html')
+
+    
 @app.route('/home')
 def home():
     return render_template("dist/HOME.html")
@@ -153,7 +181,8 @@ def signup():
 
 @app.route('/')
 def start():
-    return render_template('dist/login.html')
+    success_message =request.args.get('success_message')
+    return render_template('dist/login.html',success_message=success_message)
 
 @app.route('/save-record', methods=['POST'])
 def save_record():
