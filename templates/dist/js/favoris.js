@@ -214,14 +214,13 @@ window.addEventListener('DOMContentLoaded', event => {
   
   // Get the container element
   const container = document.getElementById('cardContainer');
-  const selectedTheme = localStorage.getItem('selectedTheme');
 
 // Filter the cards array based on the selected theme name
   
   const histoireTitle = document.getElementById('histoireTitle');
 
 // Set the value of histoireTitle to the selected theme name
-  histoireTitle.textContent = selectedTheme;
+  histoireTitle.textContent = 'Favoris';
   // Generate the card container HTML and insert it into the container element
 
 
@@ -238,18 +237,16 @@ window.addEventListener('DOMContentLoaded', event => {
 fetch('/comptes')
   .then(response => response.json())
   .then(data => {
-    console.log('Received data:', data); // Add this logging statement
-    const histoires = data.histoires; // Update key to 'histoires'
-    const filteredHistoires = histoires.filter(histoire => histoire.theme_nom === selectedTheme);
+    console.log('Received data:', data);
+    const histoires = data.histoires;
+    const filteredHistoires = histoires.filter(histoire => histoire.is_favori === true);
     console.log('Histoires:', histoires);
-    // Generate the card container HTML and insert it into the container element
     container.innerHTML = generateCardContainerHTML(filteredHistoires);
     filteredHistoires.forEach((histoire) => {
       const generateBtn = document.getElementById(histoire.id_histoire);
       generateBtn.addEventListener('click', function() {
         const text = histoire.texte;
         send3Data(text);
-       
       });
     });
   })

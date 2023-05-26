@@ -30,6 +30,20 @@
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#portfolio">Enregistre ta voix</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#about">A propos</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#contact">Contact</a></li>
+                        <ul class="navbar-nav ms-auto">
+                            {% if session.logged_in %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Logout</a>
+                              </li>
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <span class="nav-link py-3 px-0 px-lg-3 rounded">Welcome, {{ session.username }}</span>
+                              </li>
+                            {% else %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/">Login</a>
+                              </li>
+                            {% endif %}
+                          </ul>
                     </ul>
                 </div>
             </div>
@@ -37,13 +51,13 @@
         <!-- Masthead-->
         <header class="masthead bg-primary text-white text-center">
             <div class="container" style="padding: 0px 70px; margin-bottom: 15px; text-align: center; flex-direction: row; ">
-            <a rel="nofollow">
+            <a href="/fav">
                 <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block; margin-right: 20px;"> Favoris</div>
             </a>
             <a rel="nofollow">
                 <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center; display: inline-block;margin-right:20px;"> Historique</div>
             </a>
-            <a rel="nofollow">
+            <a href="/T">
                 <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block;margin-right:20px;"> Thèmes</div>
             </a>
             <a rel="nofollow">

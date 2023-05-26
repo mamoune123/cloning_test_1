@@ -94,7 +94,6 @@ function handleSelectionChange() {
       console.log("Sending data to Flask...");
       let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
       sendData(blob);
-      window.location.href = 'page2.html';
       e.preventdefault();
     });
     
@@ -226,3 +225,5 @@ if (lang === 'english') {
     </p>
   `;
 }
+
+  

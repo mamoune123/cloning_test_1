@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file, redirect, flash, url_for
+from flask import Flask, request, jsonify, render_template, send_file, redirect, flash, url_for, session
 import uuid
 from werkzeug.utils import secure_filename
 from flask_wtf import FlaskForm
@@ -84,6 +84,7 @@ Text_data = ''
 CHUNK_SIZE = 1024
 app.secret_key = 'supersecretkey'
 app.config['records']='/Users/mac/Desktop/Cloning_test/records'
+app.config['mes_voix']='/Users/mac/Desktop/Cloning_test/mes_voix'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'wma', 'au', 'aiff', 'm4a'}
 db_host = 'localhost'
 db_port = 5432 
@@ -92,6 +93,88 @@ db_user = 'postgres'
 db_password = '1234'
 
 
+
+@app.route('/fav')
+def fav():
+    return render_template('dist/favoris.html')
+
+
+@app.route('/update_favorite', methods=['POST'])
+def update_favorite():
+    favorite_id = request.json.get('favoriteId')
+    is_favorite = request.json.get('isFavorite')
+    user_id = session.get('user_id') 
+    print(user_id)
+
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE favoris SET is_favori = %s WHERE id_histoire = %s AND id_utilisateur = %s;", (is_favorite, favorite_id, user_id))
+        conn.commit()
+        return jsonify({'message': 'Favorite status updated'})
+    except psycopg2.Error as e:
+        conn.rollback()
+        return jsonify({'error': 'Failed to update favorite status'})
+    
+
+@app.route('/c')
+def c():
+
+    return render_template("dist/comptes.html")
+    
+@app.route('/comptes',methods=['GET'])
+def get_histoires():
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    user_id = session.get('user_id') if 'user_id' in session else None
+    try:
+        cursor = conn.cursor()
+        if user_id :
+            cursor.execute('SELECT h.id_histoire, h.titre, h.img, h.description, h.texte, t.nom_thème, f.is_favori ' +
+               'FROM histoires h ' +
+               'JOIN thèmes t ON h.id_thème = t.id_thème ' +
+               'LEFT JOIN favoris f ON h.id_histoire = f.id_histoire '  +
+                       'WHERE f.id_utilisateur = %s', (user_id,))
+        else:
+            cursor.execute('SELECT h.id_histoire, h.titre, h.img, h.description, h.texte, t.nom_thème ' +
+                           'FROM histoires h ' +
+                           'JOIN thèmes t ON h.id_thème = t.id_thème')
+        histoires = cursor.fetchall()
+        if user_id:
+            histoire_data = [{'id_histoire': histoire[0], 'titre': histoire[1], 'img': histoire[2], 'description': histoire[3], 'texte': histoire[4], 'theme_nom': histoire[5], 'is_favori': histoire[6]} for histoire in histoires]
+        else:
+            histoire_data = [{'id_histoire': histoire[0], 'titre': histoire[1], 'img': histoire[2], 'description': histoire[3], 'texte': histoire[4], 'theme_nom': histoire[5]} for histoire in histoires]
+
+        
+       
+
+        # Return the themes data as JSON
+        return jsonify({'histoires': histoire_data})
+    except psycopg2.Error as e:
+        print('Error fetching data:', e)
+        return 'Internal Server Error', 500
+    finally:
+        cursor.close()
+        conn.close()        
+@app.route('/page2', methods=['GET'])
+def get_themes():
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT id_thème, nom_thème, img FROM thèmes')
+        themes = cursor.fetchall()
+
+        # Convert the themes data to a list of dictionaries for JSON serialization
+        themes_data = [{'id': theme[0], 'nom_thème': theme[1], 'img': theme[2]} for theme in themes]
+
+        # Return the themes data as JSON
+        return jsonify({'themes': themes_data})
+    except psycopg2.Error as e:
+        print('Error fetching data:', e)
+        return 'Internal Server Error', 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/forgot',methods=['POST'])
 def forget():
     username = request.form['user']
@@ -99,12 +182,12 @@ def forget():
     
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     cursor = conn.cursor()
-    select_query = "SELECT username FROM users WHERE username = %s"
+    select_query = "SELECT username FROM Utilisateurs WHERE username = %s"
     cursor.execute(select_query, (username,))
     result = cursor.fetchone()
     if result:
         # Username exists, perform the password change logic and update the database
-        update_query = "UPDATE users SET password = %s WHERE username = %s"
+        update_query = "UPDATE Utilisateurs SET password = %s WHERE username = %s"
         cursor.execute(update_query, (password, username))
         conn.commit()
         cursor.close()
@@ -133,11 +216,14 @@ def login1():
     cursor = conn.cursor()
 
     # Check if the username and password match
-    cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+    cursor.execute("SELECT * FROM Utilisateurs WHERE username = %s AND password = %s", (username, password))
     user = cursor.fetchone()
 
     if user:
         # Login successful, redirect to a logged-in page
+        session['user_id'] = user[0]
+        session['logged_in'] = True
+        session['username'] = username
         cursor.close()
         conn.close()
         return redirect(url_for('home', username=username))
@@ -148,7 +234,16 @@ def login1():
         # Login failed, display an error message
         error_message = "Invalid username or password. Please try again."
         return render_template('dist/login.html', error=error_message)
-
+@app.route('/logout')
+def logout():
+    session.clear()  # Clear the user session
+    return redirect(url_for('home'))
+@app.route('/record')
+def record():
+    return render_template("dist/RECORDING.html")
+@app.route('/index')
+def index():
+    return render_template("dist/index.html")
 @app.route('/download_output')
 def download_output():
     return send_file('templates/dist/output/voice.wav', as_attachment=True)
@@ -167,7 +262,7 @@ def signup():
     cursor = conn.cursor()
 
     # Insert user data into the database
-    cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+    cursor.execute("INSERT INTO Utilisateurs (username, password) VALUES (%s, %s)", (username, password))
 
     # Commit the transaction
     conn.commit()
@@ -178,7 +273,12 @@ def signup():
 
     # Redirect or render a success page
     return render_template('dist/login.html')
-
+@app.route('/T')
+def T():
+    return render_template("dist/page2.html")
+@app.route('/f')
+def f():
+    return render_template("dist/forget.html")
 @app.route('/')
 def start():
     success_message =request.args.get('success_message')
@@ -198,7 +298,9 @@ def save_record():
         return redirect(request.url)
     file_name = str(uuid.uuid4()) + ".wav"
     full_file_name = os.path.join(app.config['records'], file_name)
+    full_file_name1 = os.path.join(app.config['mes_voix'], file_name)
     file.save(full_file_name)
+    file.save(full_file_name1)
     return render_template("dist/page2.html")
 
 @app.route('/save_selection',methods=['POST'])
@@ -212,8 +314,12 @@ def save_var():
     }
     print(response)
     return jsonify(response)
-
-
+@app.route('/wait')
+def wait():
+    return render_template('dist/waiting.html')
+@app.route('/suc')
+def suc():
+    return render_template('dist/SUCCESS.html')
 @app.route('/Story', methods=['GET'])
 def upload_file():
     global SelectedOption1, SelectedOption2, Text_data

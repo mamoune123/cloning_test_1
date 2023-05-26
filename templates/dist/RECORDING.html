@@ -30,6 +30,20 @@
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#portfolio">Enregistre ta voix</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#about">A propos</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#contact">Contact</a></li>
+                        <ul class="navbar-nav ms-auto">
+                            {% if session.logged_in %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Logout</a>
+                              </li>
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <span class="nav-link py-3 px-0 px-lg-3 rounded">Welcome, {{ session.username }}</span>
+                              </li>
+                            {% else %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/">Login</a>
+                              </li>
+                            {% endif %}
+                          </ul>
                     </ul>
                 </div>
             </div>
@@ -56,12 +70,15 @@
                     </p>
                   </div>
                 </div>
-                
-                  <a id="validate"  class="arrow-button" ><span class="arrow-right">Right</span></a>    
-                  <a href="index.html" class="arrow-button"><span class="arrow-left">Left</span></a> 
-        </header>
-       
+                <div class="container d-flex align-items-center flex-column">
+                <div id="fileListContainer">
+                    <h2>Liste des fichiers</h2>
+                    <ul id="fileList"></ul>
+                  </div></div>
+                  <a id="validate" href="/T"  class="arrow-button" ><span class="arrow-right">Right</span></a>    
+                  <a href="/index" class="arrow-button"><span class="arrow-left">Left</span></a> 
 
+        </header>
         <footer class="footer text-center">
             <div class="container">
                 <div class="row">

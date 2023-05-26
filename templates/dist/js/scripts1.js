@@ -55,24 +55,24 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
 
-const themes =[
-  {
-    name: 'comptes et autres',
-    image:'/img/duck.png',
-  },
-  {
-    name: 'fable mythe et literature',
-    image:'/img/duck.png',
-  },
-  {
-    name: 'heroine et heros',
-    image:'/img/duck.png',
-  },
-  {
-    name: 'les animaux',
-    image:'/img/duck.png',
-  }
-];
+// const themes =[
+//   {
+//     name: 'comptes et autres',
+//     image:'/img/duck.png',
+//   },
+//   {
+//     name: 'fable mythe et literature',
+//     image:'/img/duck.png',
+//   },
+//   {
+//     name: 'heroine et heros',
+//     image:'/img/duck.png',
+//   },
+//   {
+//     name: 'les animaux',
+//     image:'/img/duck.png',
+//   }
+// ];
 
 
 
@@ -80,16 +80,16 @@ const themes =[
 
   
   // Function to generate the HTML structure for the cards
-  function generateCardHTML(themes) {
+  function generateCardHTML(theme) {
     return `
     
     <div class="cards_item">
     <div class="cardHistoire">
-    <a href="comptes.html">
-      <img class="card-image" src="${themes.image}" alt="Image" onclick="saveTheme('${themes.name}')">
+      <a href="/c">
+        <img class="card-image" src="${theme.img}" alt="Image" onclick="saveTheme('${theme.nom_thème}')">
       </a>
       <div class="card_content">
-        <h2 class="card_title">${themes.name}</h2>
+        <h2 class="card_title">${theme.nom_thème}</h2>
       </div>
     </div>
   </div>
@@ -112,7 +112,18 @@ const themes =[
   const container = document.getElementById('cardContainer');
   
   // Generate the card container HTML and insert it into the container element
-  container.innerHTML = generateCardContainerHTML(themes);
+  
   
 
 
+
+  fetch('/page2')
+  .then(response => response.json())
+  .then(data => {
+    const themes = data.themes;
+    // Generate the card container HTML and insert it into the container element
+    container.innerHTML = generateCardContainerHTML(themes);
+  })
+  .catch(error => {
+    console.error('Error fetching themes:', error);
+  });

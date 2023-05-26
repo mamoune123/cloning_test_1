@@ -32,6 +32,20 @@
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#portfolio">Enregistre ta voix</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#about">A propos</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#contact">Contact</a></li>
+                        <ul class="navbar-nav ms-auto">
+                            {% if session.logged_in %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Logout</a>
+                              </li>
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <span class="nav-link py-3 px-0 px-lg-3 rounded">Welcome, {{ session.username }}</span>
+                              </li>
+                            {% else %}
+                              <li class="nav-item mx-0 mx-lg-1">
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/">Login</a>
+                              </li>
+                            {% endif %}
+                          </ul>
                     </ul>
                 </div>
             </div>
@@ -75,10 +89,10 @@
               <div class="container"> 
                 <div class="row justify-content-start"> 
                     
-              <a id="validate" href="RECORDING.html" class="arrow-button " ><span class="arrow-right">Right</span></a>    
+              <a id="validate" href="/record" class="arrow-button " ><span class="arrow-right">Right</span></a>    
             </div>
         </div>
-              <a href="HOME.html" class="arrow-button "><span class="arrow-left">Left</span></a>  
+              <a href="/home" class="arrow-button "><span class="arrow-left">Left</span></a>  
               
               
         </header>

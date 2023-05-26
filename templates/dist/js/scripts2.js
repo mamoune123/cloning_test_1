@@ -58,7 +58,7 @@ $(document).ready(function() {
       method: "GET",
       success: function(response) {
         console.log("Second endpoint executed successfully");
-        window.location.href = 'SUCCESS.html'; // Navigate to SUCCESS.html after successful execution
+        window.location.href = "/suc";
       },
       error: function(xhr, status, error) {
         console.log("Error executing the second endpoint:", error);
