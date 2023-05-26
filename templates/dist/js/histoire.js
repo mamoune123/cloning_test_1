@@ -151,7 +151,7 @@ window.addEventListener('DOMContentLoaded', event => {
     
     <div class="cards_item">
     <div class="cardHistoire">
-    <form action="/update_favorite" method="POST">
+    
     <label for="${histoire.titre }" class="custom-checkbox">
     
     <input type="checkbox" ${histoire.is_favori ? 'checked' : ''} value="${histoire.id_histoire}" name="${histoire.titre}" id="${histoire.titre}" 
@@ -161,7 +161,7 @@ window.addEventListener('DOMContentLoaded', event => {
     <i class="glyphicon glyphicon-star-empty"></i>
     <i class="glyphicon glyphicon-star"></i>
   </label>
-  </form>
+  
 
         <img class="card-image" src="${histoire.img}">
        
