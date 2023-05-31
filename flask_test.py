@@ -36,9 +36,15 @@ def send_text_to_speech_api(XI_API_KEY, text, filenames,selectedgender,selecteda
     
      
     files = []
-    for filename in filenames:
-        file_path = os.path.join(app.config['records'], filename)
-        files.append(('files', (filename, open(file_path, 'rb'), 'audio/mpeg')))
+    user_id = session.get('user_id')
+    if user_id :
+        for filename in filenames:
+            file_path = os.path.join(app.config['mes_voix'], filename)
+            files.append(('files', (filename, open(file_path, 'rb'), 'audio/mpeg')))
+    else : 
+        for filename in filenames:
+            file_path = os.path.join(app.config['records'], filename)
+            files.append(('files', (filename, open(file_path, 'rb'), 'audio/mpeg')))
 
     response = requests.post(url, headers=headers, data=data, files=files)
     print(response.text)
@@ -93,6 +99,59 @@ db_user = 'postgres'
 db_password = '1234'
 
 
+@app.route('/update_selected', methods=['POST'])
+def update_selected():
+    data = request.get_json()
+    voix_id = data['voixId']
+    selected = data['selected']
+    user_id = session.get('user_id') 
+
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    print(selected)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE voix SET selected = %s WHERE id_voix = %s AND id_utilisateur = %s;", (selected,voix_id, user_id))
+        conn.commit()
+        return jsonify({'message': 'selected status updated'})
+    except psycopg2.Error as e:
+        conn.rollback()
+        return jsonify({'error': 'Failed to update favorite status'})
+    
+    
+
+
+
+
+@app.route('/delete-file', methods=['POST'])
+def delete_file():
+    data = request.get_json()
+    file_name = data['fileName']
+    print(file_name)
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+
+    # Retrieve the chemin_file for the given file name
+    cursor.execute("SELECT chemin_fichier FROM voix WHERE nom_file = %s", (file_name,))
+    result = cursor.fetchone()
+
+    if result:
+        chemin_file = result[0]
+        # Delete the file from the folder
+        file_path = os.path.join(app.config['mes_voix'], chemin_file)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            print('File not found:', file_path)
+
+    # Delete the row from the voix table
+    cursor.execute("DELETE FROM voix WHERE nom_file = %s", (file_name,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return '', 200
+
 
 @app.route('/fav')
 def fav():
@@ -143,10 +202,6 @@ def get_histoires():
             histoire_data = [{'id_histoire': histoire[0], 'titre': histoire[1], 'img': histoire[2], 'description': histoire[3], 'texte': histoire[4], 'theme_nom': histoire[5], 'is_favori': histoire[6]} for histoire in histoires]
         else:
             histoire_data = [{'id_histoire': histoire[0], 'titre': histoire[1], 'img': histoire[2], 'description': histoire[3], 'texte': histoire[4], 'theme_nom': histoire[5]} for histoire in histoires]
-
-        
-       
-
         # Return the themes data as JSON
         return jsonify({'histoires': histoire_data})
     except psycopg2.Error as e:
@@ -155,6 +210,20 @@ def get_histoires():
     finally:
         cursor.close()
         conn.close()        
+# get voice 
+@app.route('/voixget')
+def voixge():
+    user_id = session.get('user_id')
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM voix WHERE id_utilisateur = %s", (user_id,))
+    voix = cursor.fetchall()
+    voix_data = [{'id_voix' : voi[0], 'chemin_fichier': voi[2],'nom_file': voi[3], 'date_ajout': voi[4], 'selected':voi[5]} for voi in voix]
+    return jsonify({'voix': voix_data})
+
+@app.route('/voix')
+def voix():
+    return render_template('dist/mes_voix.html')
 @app.route('/page2', methods=['GET'])
 def get_themes():
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
@@ -283,10 +352,35 @@ def f():
 def start():
     success_message =request.args.get('success_message')
     return render_template('dist/login.html',success_message=success_message)
+@app.route('/save_mesvoix',methods=['POST'])
+def save_mesvoix():
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']    
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    file_name = str(uuid.uuid4()) + ".wav"
+    full_file_name = os.path.join(app.config['mes_voix'], file_name)
+    file.save(full_file_name)
+    user_id = session.get('user_id') 
+    filename1 = file.filename
+    print(filename1)
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+    if user_id :
+        insert_query = "INSERT INTO voix (id_utilisateur, nom_file, chemin_fichier) VALUES (%s, %s, %s)"
+        cursor.execute(insert_query, (user_id, filename1, full_file_name))
+    conn.commit()
+    cursor.close()
+
+    return render_template("dist/page2.html")
 
 @app.route('/save-record', methods=['POST'])
 def save_record():
     # check if the post request has the file part
+
     if 'file' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -298,9 +392,9 @@ def save_record():
         return redirect(request.url)
     file_name = str(uuid.uuid4()) + ".wav"
     full_file_name = os.path.join(app.config['records'], file_name)
-    full_file_name1 = os.path.join(app.config['mes_voix'], file_name)
+    
     file.save(full_file_name)
-    file.save(full_file_name1)
+
     return render_template("dist/page2.html")
 
 @app.route('/save_selection',methods=['POST'])
@@ -320,23 +414,53 @@ def wait():
 @app.route('/suc')
 def suc():
     return render_template('dist/SUCCESS.html')
+
 @app.route('/Story', methods=['GET'])
 def upload_file():
     global SelectedOption1, SelectedOption2, Text_data
     url = f"https://api.elevenlabs.io/v1/voices/add"
     records_dir = app.config['records']
-    filenames = []
-    filenames = os.listdir(records_dir)
-    send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
-    response = send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
-    empty_records_folder(records_dir)
-    OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'templates/dist/output')
-    output_path = os.path.join(OUTPUT_DIR, 'voice.wav')    
-    with open(output_path, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-            if chunk:
-                f.write(chunk)      
-    return render_template('dist/SUCCESS.html')
+    user_id = session.get('user_id') 
+
+    if user_id : 
+        conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password) 
+        cursor = conn.cursor() 
+        cursor.execute('SELECT chemin_fichier FROM voix WHERE selected = TRUE AND id_utilisateur=%s',(user_id,)) 
+        result = cursor.fetchall()
+        file_remove = '.DS_Store'
+        filenames1 = [os.path.basename(row[0]) for row in result]
+        if file_remove in filenames1 :
+            filenames1.remove(file_remove)
+        print(filenames1)
+        conn.close() 
+        send_text_to_speech_api(XI_API_KEY, Text_data, filenames1,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)  
+        response = send_text_to_speech_api(XI_API_KEY, Text_data, filenames1,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)  
+        OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'templates/dist/output')  
+        output_path = os.path.join(OUTPUT_DIR, 'voice.wav')    
+        with open(output_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
+                     if chunk:
+                        f.write(chunk)   
+
+        return render_template('dist/SUCCESS.html')
+
+    else :   
+            filenames = []
+            filenames = os.listdir(records_dir)
+            file_remove = '.DS_Store'
+            if file_remove in filenames :
+                filenames.remove(file_remove)
+            print(filenames)
+            send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
+            response = send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
+            empty_records_folder(records_dir)
+            OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'templates/dist/output')
+            output_path = os.path.join(OUTPUT_DIR, 'voice.wav')    
+            with open(output_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
+                            if chunk:
+                                f.write(chunk)      
+            return render_template('dist/SUCCESS.html')
 
 def empty_records_folder(records1dir):
     # Delete all files inside the records folder

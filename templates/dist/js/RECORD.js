@@ -87,20 +87,31 @@ function handleSelectionChange() {
     }
     let isRecording = false;
     document.getElementById('validate').addEventListener('click', function() {
+      
         if(!isRecording){
             alert("Please Record your Voice first");
             return;
         }
+      
       console.log("Sending data to Flask...");
+      var filename = document.getElementById('file-name1').value;
       let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
-      sendData(blob);
-      e.preventdefault();
+      var blob2 = blob.slice();
+      blob2.name = filename + '.mp3';
+      blob.name = filename + '.mp3';
+      console.log(filename);
+      console.log(blob.name);
+      sendData(blob,blob2);
+      window.location.href= "/T";
     });
     
-    function sendData(data) {
+    function sendData(data,data1) {
+         var filename = data.name;
+         var filename1 = data1.name;
         var form = new FormData();
-        form.append('file', data, 'data.mp3');
-        form.append('title', 'data.mp3');
+        form.append('file', data, filename);
+        var form2 = new FormData();
+        form2.append('file', data1, filename1);
         //Chrome inspector shows that the post data includes a file and a title.
         $.ajax({
             type: 'POST',
@@ -112,7 +123,18 @@ function handleSelectionChange() {
         }).done(function(data) {
             console.log(data);
         });
+        $.ajax({
+          type: 'POST',
+          url: '/save_mesvoix',
+          data: form2,
+          cache: false,
+          processData: false,
+          contentType: false
+      }).done(function(data1) {
+          console.log(data1);
+      });
     }
+    
 
 var audioPlayer = document.createElement('audio');
 document.body.appendChild(audioPlayer);

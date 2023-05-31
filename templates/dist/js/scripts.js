@@ -105,6 +105,7 @@ function handleGenderChange() {
   
     if (genderSelect.value === "female" || genderSelect.value === "male") {
       languageSection.style.display = "block";
+      languageSection.style.display = "flex";
     } else {
       languageSection.style.display = "none";
     }
