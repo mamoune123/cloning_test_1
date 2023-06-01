@@ -7,7 +7,48 @@ import os
 import json
 import shutil
 import psycopg2
+import smtplib
+from premailer import transform
+from bs4 import BeautifulSoup
 XI_API_KEY = "067b3f82874d1f95f8ba0945f192d5bd"
+def sendEmail(recipient_email,updated_content):
+    # Create the email headers
+    sender_email = "voicestorykidsstory@gmail.com"
+    sender_password = "lohlwfqevcdifnpr"
+    subject = 'Registration Succesful to VoiceStory, Welcome !!'
+    headers = f"From: {sender_email}\r\nTo: {recipient_email}\r\nSubject: {subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html\r\n"
+    html_file = '/Users/mac/Desktop/Cloning_test/templates/dist/EMAIL.html'
+    with open(html_file,'r') as file : 
+        data = file.read()
+    
+    htmlc = transform(data)
+
+    soup = BeautifulSoup(htmlc, 'html.parser')
+    h1_element = soup.find('h1', {'class': 'name'})  # Replace with the appropriate selector
+    h1_element.string = updated_content
+
+    # Get the updated HTML
+    updated_html = str(soup)
+
+    # Create the full email message
+    email_message = headers + "\r\n" + updated_html
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = '587'
+    try:
+        # Create a SMTP session
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            # Start TLS encryption if needed
+            server.starttls()
+            # Login to the SMTP server
+            server.login(sender_email, sender_password)
+            # Send the email
+            server.sendmail(sender_email, recipient_email, email_message.encode('utf-8'))
+        print("Email sent successfully!")
+    except Exception as e:
+        print("An error occurred while sending the email:", str(e))
+
+
+
 def models_imp(XI_API_KEY):
     url = "https://api.elevenlabs.io/v1/models"
     headers = {
@@ -277,7 +318,7 @@ def home():
 @app.route('/login1', methods=['POST'])
 def login1():
     # Get form data
-    username = request.form['user']
+    email = request.form['email']
     password = request.form['pass']
 
     # Connect to the database
@@ -285,14 +326,16 @@ def login1():
     cursor = conn.cursor()
 
     # Check if the username and password match
-    cursor.execute("SELECT * FROM Utilisateurs WHERE username = %s AND password = %s", (username, password))
+    cursor.execute("SELECT * FROM Utilisateurs WHERE email = %s AND password = %s", (email, password))
     user = cursor.fetchone()
 
     if user:
         # Login successful, redirect to a logged-in page
         session['user_id'] = user[0]
         session['logged_in'] = True
-        session['username'] = username
+        session['username'] = user[1]
+        username = user[1]
+        print(username)
         cursor.close()
         conn.close()
         return redirect(url_for('home', username=username))
@@ -301,7 +344,7 @@ def login1():
         cursor.close()
         conn.close()
         # Login failed, display an error message
-        error_message = "Invalid username or password. Please try again."
+        error_message = "Invalid mail or password. Please try again."
         return render_template('dist/login.html', error=error_message)
 @app.route('/logout')
 def logout():
@@ -325,17 +368,30 @@ def signup():
     # Get form data
     username = request.form['user']
     password = request.form['pass']
-
+    mail = request.form['email']
+    print(mail)
     # Connect to the database
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     cursor = conn.cursor()
 
-    # Insert user data into the database
-    cursor.execute("INSERT INTO Utilisateurs (username, password) VALUES (%s, %s)", (username, password))
-
+    try : 
+        # Insert user data into the database
+        cursor.execute("INSERT INTO Utilisateurs (username, password, email) VALUES (%s, %s, %s)", (username, password, mail))
+        sendEmail(mail,username)
     # Commit the transaction
-    conn.commit()
+        conn.commit()
+    except psycopg2.IntegrityError as e:
+        error_message = str(e)
+        if 'unique_username' in error_message:
+            error_message = "Username already existe. Please try different one."
+            return render_template('dist/register.html',error_message=error_message)
+        if 'unique_mail' in error_message:
+            error_message = "Email already existe. Please try different one."
+            return render_template('dist/register.html',error_message=error_message)
+        else:
 
+            error_message = "Username and email already exist. Please try different ones."
+            return render_template('dist/register.html', error_message=error_message)
     # Close the cursor and connection
     cursor.close()
     conn.close()
@@ -482,6 +538,7 @@ def process_send():
     }
     print(response)
     return jsonify(response)
+
 if __name__ == '__main__':
      
       app.run(debug=True)
