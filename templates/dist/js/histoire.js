@@ -151,15 +151,12 @@ window.addEventListener('DOMContentLoaded', event => {
     
     <div class="cards_item">
     <div class="cardHistoire">
-    
     <label for="${histoire.titre }" class="custom-checkbox">
-    
     <input type="checkbox" ${histoire.is_favori ? 'checked' : ''} value="${histoire.id_histoire}" name="${histoire.titre}" id="${histoire.titre}" 
-     onchange="submitForm(event)" 
-    />
+    onchange="submitForm(event)" 
+   />
+    <i class="fas fa-star"></i>
     
-    <i class="glyphicon glyphicon-star-empty"></i>
-    <i class="glyphicon glyphicon-star"></i>
   </label>
   
 
@@ -168,14 +165,12 @@ window.addEventListener('DOMContentLoaded', event => {
         <div class="card_content">
             <h2 class="card_title">${histoire.titre}</h2>
             <p class="card_text">${histoire.description}</p>
-            <button id="${histoire.id_histoire}" class="send-text-btn btn btn-primary" data-text="${histoire.texte}">Generate Story</button>
+            <button id="${histoire.id_histoire}" class="send-text-btn btn btn-primary" data-text="${histoire.texte}">Get Your Voice</button>
             
         </div>
         
     </div>
     </div>
-  
- 
  `;
   }  
  
@@ -248,8 +243,8 @@ fetch('/comptes')
       const generateBtn = document.getElementById(histoire.id_histoire);
       generateBtn.addEventListener('click', function() {
         const text = histoire.texte;
-        send3Data(text);
-       
+        localStorage.setItem('storyText', text);
+        window.location.href = '/voix1';
       });
     });
   })
@@ -257,18 +252,4 @@ fetch('/comptes')
     console.error('Error fetching histoires:', error);
   });
 
-  function send3Data(text) {
-    $.ajax({
-      type: 'POST',
-      url: '/get_data',
-      contentType: 'application/json',
-      data: JSON.stringify({ text: text }),
-      success: function(response) {
-        console.log(response);
-        window.location.href = '/wait';
-      },
-      error: function(error) {
-        console.log('Error sending data to the server.');
-      }
-    });
-  }
+  

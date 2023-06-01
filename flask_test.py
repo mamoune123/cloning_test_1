@@ -262,9 +262,34 @@ def voixge():
     voix_data = [{'id_voix' : voi[0], 'chemin_fichier': voi[2],'nom_file': voi[3], 'date_ajout': voi[4], 'selected':voi[5]} for voi in voix]
     return jsonify({'voix': voix_data})
 
+@app.route('/voix1')
+def voix1():
+    show_button = True 
+    if 'show_button1' in request.args:
+        show_button = False     
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+
+    # Get the user's ID
+    user_id = session.get('user_id') 
+
+    # Query the database to check if the user has any voice
+    cursor.execute("SELECT * FROM voix WHERE id_utilisateur = %s", (user_id,))
+    result = cursor.fetchone()
+
+    if result is None:
+        # User has no voice
+        message = True
+    else:
+        # User has at least one voice
+        message = False
+
+    return render_template('dist/mes_voix.html', show_button=show_button, message=message)
+
 @app.route('/voix')
 def voix():
-    return render_template('dist/mes_voix.html')
+    show_button1 = False
+    return redirect(url_for('voix1',show_button1=show_button1))
 @app.route('/page2', methods=['GET'])
 def get_themes():
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)

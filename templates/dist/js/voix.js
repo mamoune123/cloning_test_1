@@ -9,81 +9,50 @@
 
 window.addEventListener('DOMContentLoaded', event => {
 
-    // Navbar shrink function
-    var navbarShrink = function () {
-        const navbarCollapsible = document.body.querySelector('#mainNav');
-        if (!navbarCollapsible) {
-            return;
-        }
-        if (window.scrollY === 0) {
-            navbarCollapsible.classList.remove('navbar-shrink')
-        } else {
-            navbarCollapsible.classList.add('navbar-shrink')
-        }
+  // Navbar shrink function
+  var navbarShrink = function () {
+      const navbarCollapsible = document.body.querySelector('#mainNav');
+      if (!navbarCollapsible) {
+          return;
+      }
+      if (window.scrollY === 0) {
+          navbarCollapsible.classList.remove('navbar-shrink')
+      } else {
+          navbarCollapsible.classList.add('navbar-shrink')
+      }
 
-    };
+  };
 
-    // Shrink the navbar 
-    navbarShrink();
+  // Shrink the navbar 
+  navbarShrink();
 
-    // Shrink the navbar when page is scrolled
-    document.addEventListener('scroll', navbarShrink);
+  // Shrink the navbar when page is scrolled
+  document.addEventListener('scroll', navbarShrink);
 
-    // Activate Bootstrap scrollspy on the main nav element
-    const mainNav = document.body.querySelector('#mainNav');
-    if (mainNav) {
-        new bootstrap.ScrollSpy(document.body, {
-            target: '#mainNav',
-            rootMargin: '0px 0px -40%',
-        });
-    };
+  // Activate Bootstrap scrollspy on the main nav element
+  const mainNav = document.body.querySelector('#mainNav');
+  if (mainNav) {
+      new bootstrap.ScrollSpy(document.body, {
+          target: '#mainNav',
+          rootMargin: '0px 0px -40%',
+      });
+  };
 
-    // Collapse responsive navbar when toggler is visible
-    const navbarToggler = document.body.querySelector('.navbar-toggler');
-    const responsiveNavItems = [].slice.call(
-        document.querySelectorAll('#navbarResponsive .nav-link')
-    );
-    responsiveNavItems.map(function (responsiveNavItem) {
-        responsiveNavItem.addEventListener('click', () => {
-            if (window.getComputedStyle(navbarToggler).display !== 'none') {
-                navbarToggler.click();
-            }
-        });
-    });
+  // Collapse responsive navbar when toggler is visible
+  const navbarToggler = document.body.querySelector('.navbar-toggler');
+  const responsiveNavItems = [].slice.call(
+      document.querySelectorAll('#navbarResponsive .nav-link')
+  );
+  responsiveNavItems.map(function (responsiveNavItem) {
+      responsiveNavItem.addEventListener('click', () => {
+          if (window.getComputedStyle(navbarToggler).display !== 'none') {
+              navbarToggler.click();
+          }
+      });
+  });
 
 });
-// function generateCardHTML(vois) {
-//     return ` 
-//     <div class="cards_item">
-//     <div class="cardHistoire">
-//     <img class="card-image" src="https://picsum.photos/500/300/?image=10">
-//       <div class="card_content">
-//         <h2 class="card_title">${vois.nom_file}</h2>
-//         <p class="card_texte" style="color : black;">${vois.date_ajout} </p>
-//       </div>
-//     </div>
-//   </div>
-//  `;
-//   }
 
-//   function generateCardContainerHTML(voix) {
-//     return `
-      
-//         ${voix.map(generateCardHTML).join('')}
-      
-//     `;
-//   }
-// const container = document.getElementById('cardContainer');
-//   fetch('/voixget')
-//   .then(response => response.json())
-//   .then(data => {
-//     const voix = data.voix;
-//     // Generate the card container HTML and insert it into the container element
-//     container.innerHTML = generateCardContainerHTML(voix);
-//   })
-//   .catch(error => {
-//     console.error('Error fetching voix:', error);
-//   });
 function displayFiles(files) {
     var fileList = document.getElementById('file-list');
 
@@ -199,7 +168,29 @@ function updateSelected(voixId, selected) {
     }
   };
   xhr.send();
+  const storedText = localStorage.getItem('storyText');
+  console.log(storedText);  
+  // Update the data-text attribute of the button
+  const storyButton = document.getElementById('Story_gen');
+  storyButton.addEventListener('click', function() {
+    send3Data(storedText);
+  });
 
+  function send3Data(text) {
+    $.ajax({
+      type: 'POST',
+      url: '/get_data',
+      contentType: 'application/json',
+      data: JSON.stringify({ text: text }),
+      success: function(response) {
+        console.log(response);
+        window.location.href = '/wait';
+      },
+      error: function(error) {
+        console.log('Error sending data to the server.');
+      }
+    });
+  }
 
 
 

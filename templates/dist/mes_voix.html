@@ -6,8 +6,6 @@
         <meta name="description" content="" />
         <meta name="author" content="" />
         <title>Text to Synthesize</title>
-        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
-
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -22,14 +20,14 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
             <div class="container">
-                <a class="navbar-brand" href="/home">Voice Story</a>
+                <a class="navbar-brand" href="#page-top">Voice Story</a>
                 <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/record">Enregistre ta voix</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#portfolio">Enregistre ta voix</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#about">A propos</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#contact">Contact</a></li>
                         <ul class="navbar-nav ms-auto">
@@ -53,8 +51,8 @@
         <!-- Masthead-->
         <header class="masthead bg-primary text-white text-center">
             <div class="container" style="padding: 0px 70px; margin-bottom: 15px; text-align: center; flex-direction: row; ">
-            <a href="/T">
-                <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block; margin-right: 20px;"> histoires</div>
+            <a href="/fav">
+                <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block; margin-right: 20px;"> Favoris</div>
             </a>
             <a rel="nofollow">
                 <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center; display: inline-block;margin-right:20px;"> Historique</div>
@@ -62,22 +60,26 @@
             <a href="/T">
                 <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block;margin-right:20px;"> Thèmes</div>
             </a>
-            <a rel="nofollow">
-                <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block;"> Les plus écouter</div>
+            <a href="/voix">
+                <div class="btn btn-outline-light" style="padding: 0px 70px; margin-bottom: 15px; text-align: center;display: inline-block;">voix</div>
             </a>
             </div>
-            <h1 class="text-center mb-4">Mes voix : </h1>
-            
-            <div id="file-list"></div>
-            <!-- <div class="container d-flex align-items-center flex-column">
+
+            <div class="container d-flex align-items-center flex-column">
                 <h1 class="text-center mb-4">Mes voix : </h1>
-                <div id="cardContainer" class="card-container">
-                   
-                </div> -->
-                
+                {% if message %}
+                <p class="font-weight-bold" style="font-size: 35px;">Enregistre ta voix dans l'onglet <a href="/record" class="link-dark" style="font-size: 35px;">Enregistre ta voix</a> </p>
+                {% endif %}
+                <div class="d-flex justify-content-center row">
+                <div id="file-list"></div>
+            </div>
+             {% if show_button %}
+                <button id="Story_gen" class="send-text-btn btn btn-secondary" >Generate Story</button>
+                    {% endif %}
                   <!-- Sidebar -->
                 
-                 
+                  
+                  
         </header>
         <!-- Portfolio Section-->
        
