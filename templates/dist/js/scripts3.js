@@ -64,6 +64,11 @@ function toggleAudio() {
       playButton.textContent = "Play the synthesized voice";
     }
   }
+var text_cont = localStorage.getItem('storyText');
+const Story = document.getElementById('text_content');
+Story.textContent = text_cont;
+
+
 
 
 

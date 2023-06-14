@@ -10,6 +10,29 @@
  * Copyright 2011-2022 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
+
+ 
+
+
+ .cardHistoire1 {
+  background-color: white;
+  width: 100%;
+  border-radius: 0.25rem;
+  box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+
+
+ @font-face {
+  font-family: 'MysteryQuest';
+  src: url('fonts/MysteryQuest-Regular.ttf');
+}
+
+
+
 .form-check-input {
 top: -5px;
 right: 5px;
@@ -106,6 +129,7 @@ label input[type="checkbox"] {
   padding: 1rem;
   flex-basis: calc(50% - 20px);
   flex-grow: 1;
+  justify-content: space-around;
 }
 
 @media (min-width: 768px) {

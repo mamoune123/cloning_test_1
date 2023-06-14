@@ -53,6 +53,22 @@ window.addEventListener('DOMContentLoaded', event => {
 
 });
 
+function extractRelativePath(fullPath) {
+  const parentPath = '/Users/mac/Desktop/Cloning_test/templates/dist/';
+
+  // Check if the fullPath starts with the parentPath
+  if (fullPath.startsWith(parentPath)) {
+    // Extract the relative path by removing the parentPath
+    const relativePath = fullPath.substring(parentPath.length);
+    return relativePath;
+  }
+
+  // Return the fullPath as is if it doesn't start with the parentPath
+  return fullPath;
+}
+
+
+
 function displayFiles(files) {
     var fileList = document.getElementById('file-list');
 
@@ -61,8 +77,13 @@ function displayFiles(files) {
       // Création de l'icône du fichier
       var fileIcon = document.createElement('div');
       fileIcon.setAttribute('id', file.id_voix);
+      var audioId = 'audio_' + file.id_voix;
       fileIcon.className = 'file-icon';
-      fileIcon.innerHTML = '<img src="img/file_icon.png" alt="File Icon">' +
+      fileIcon.innerHTML = '<img src="img/file_icon.png" alt="File Icon" id="Image1"   onclick="toggleplay(\'' + audioId + '\')">' +
+                           '<audio id="'+audioId+'">'+
+                           '<source src="'+extractRelativePath(file.chemin_fichier)+'" type="audio/wav" crossorigin="anonymous">'+
+                           '</audio>'+
+                           '<span class="glyphicon glyphicon-play"></span>'+
                            '<div class="file-name">' + file.nom_file + '</div>' +
                            '<div class="file-date">' + file.date_ajout + '</div>';
 
@@ -96,9 +117,10 @@ function displayFiles(files) {
         updateSelected(file.id_voix, selected); 
         // Call the function to update the selected attribute
       });
-
     });
+
   }
+ 
 function updateSelected(voixId, selected) {
     // Set up the data to be sent in the request body
     var data = {
@@ -157,6 +179,7 @@ function updateSelected(voixId, selected) {
         console.log('Error deleting the file:', error);
       });
   }
+  
   // Appel AJAX pour récupérer la liste des fichiers depuis le serveur
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/voixget', true);
@@ -191,12 +214,26 @@ function updateSelected(voixId, selected) {
       }
     });
   }
-
-
-
-
-
-
- 
   
- 
+
+  function toggleplay(audioId) {
+    var audioElement = document.getElementById(audioId);
+    var sourceElement = audioElement.getElementsByTagName('source')[0];
+    var sourceURL = sourceElement.src;
+    console.log('Audio Source:', sourceURL);
+    if (audioElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      if (audioElement.paused) {
+        stopAllAudio();
+        audioElement.play();
+      } else {
+        audioElement.pause();
+      }
+    }
+  }
+  function stopAllAudio() {
+    var audioElements = document.getElementsByTagName('audio');
+    for (var i = 0; i < audioElements.length; i++) {
+      var audioElement = audioElements[i];
+      audioElement.pause();
+    }
+  }

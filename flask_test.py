@@ -8,9 +8,13 @@ import json
 import shutil
 import psycopg2
 import smtplib
+import random
+import string
 from premailer import transform
 from bs4 import BeautifulSoup
+import copy
 XI_API_KEY = "067b3f82874d1f95f8ba0945f192d5bd"
+
 def sendEmail(recipient_email,updated_content):
     # Create the email headers
     sender_email = "voicestorykidsstory@gmail.com"
@@ -31,9 +35,12 @@ def sendEmail(recipient_email,updated_content):
     updated_html = str(soup)
 
     # Create the full email message
+
     email_message = headers + "\r\n" + updated_html
     smtp_server = 'smtp.gmail.com'
     smtp_port = '587'
+
+
     try:
         # Create a SMTP session
         with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -46,8 +53,6 @@ def sendEmail(recipient_email,updated_content):
         print("Email sent successfully!")
     except Exception as e:
         print("An error occurred while sending the email:", str(e))
-
-
 
 def models_imp(XI_API_KEY):
     url = "https://api.elevenlabs.io/v1/models"
@@ -131,7 +136,7 @@ Text_data = ''
 CHUNK_SIZE = 1024
 app.secret_key = 'supersecretkey'
 app.config['records']='/Users/mac/Desktop/Cloning_test/records'
-app.config['mes_voix']='/Users/mac/Desktop/Cloning_test/mes_voix'
+app.config['mes_voix']='/Users/mac/Desktop/Cloning_test/templates/dist/mes_voix'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'wma', 'au', 'aiff', 'm4a'}
 db_host = 'localhost'
 db_port = 5432 
@@ -159,9 +164,6 @@ def update_selected():
         return jsonify({'error': 'Failed to update favorite status'})
     
     
-
-
-
 
 @app.route('/delete-file', methods=['POST'])
 def delete_file():
@@ -216,12 +218,49 @@ def update_favorite():
         conn.rollback()
         return jsonify({'error': 'Failed to update favorite status'})
     
-
+@app.route('/recoute/<id_clone>')
+def recoute(id_clone):
+    user_id = session.get('user_id')
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    try:
+        cursor = conn.cursor()
+        if user_id :
+            cursor.execute("SELECT c.id_clone, c.chemin_fichier, h.titre, h.texte FROM clone c INNER JOIN histoires h ON c.id_histoire = h.id_histoire AND c.id_clone=%s;", (id_clone,))
+            results = cursor.fetchall()
+            ecoute_data = [{'chemin_fichier':ec[1],'titre':ec[2], 'texte':ec[3]} for ec in results]    
+            return render_template("dist/recoute.html",ecoute_data=ecoute_data)
+    except psycopg2.Error as e:
+        conn.rollback()
+        return jsonify({'error': 'Failed to update favorite status'})
+    return
 @app.route('/c')
 def c():
 
     return render_template("dist/comptes.html")
-    
+
+@app.route ('/voice_card')
+def voice_card():
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    user_id = session.get('user_id') if 'user_id' in session else None
+    try:
+        cursor = conn.cursor()
+        if user_id :
+            cursor.execute('SELECT c.id_clone, c.nom_file, c.date_ajout, c.id_histoire, h.titre, h.img FROM clone c JOIN histoires h ON c.id_histoire = h.id_histoire WHERE c.id_utilisateur = %s', (user_id,))
+            histoires = cursor.fetchall()
+            # Convert the themes data to a list of dictionaries for JSON serialization
+            histoires_data = [{'id_clone': histoire[0], 'nom_file': histoire[1], 'date_ajout' : histoire[2], 'id_histoire': histoire[3], 'titre' : histoire[4],'img':histoire[5]} for histoire in histoires]
+
+            # Return the themes data as JSON
+            return jsonify({'mes_histoires': histoires_data})
+    except psycopg2.Error as e:
+        print('Error fetching data:', e)
+        return 'Internal Server Error', 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
 @app.route('/comptes',methods=['GET'])
 def get_histoires():
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
@@ -309,32 +348,100 @@ def get_themes():
     finally:
         cursor.close()
         conn.close()
-
-@app.route('/forgot',methods=['POST'])
-def forget():
-    username = request.form['user']
-    password = request.form['pass']
-    
+@app.route('/f')
+def f():
+    return render_template("dist/forget.html")
+@app.route('/reset', methods=['POST'])
+def reset():
+    email = request.form['email_reset']
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     cursor = conn.cursor()
-    select_query = "SELECT username FROM Utilisateurs WHERE username = %s"
-    cursor.execute(select_query, (username,))
+    cursor.execute("SELECT username FROM utilisateurs WHERE email = %s", (email,)) 
     result = cursor.fetchone()
-    if result:
-        # Username exists, perform the password change logic and update the database
-        update_query = "UPDATE Utilisateurs SET password = %s WHERE username = %s"
-        cursor.execute(update_query, (password, username))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        success_message = "Password changed successfully!"
-        return redirect(url_for('start', success_message=success_message))
+    if result : 
+            username = result[0]
+            print(username)
+            Send_Reset(email,username)
+            return render_template('dist/login.html',error_message='Email sent Successfully')
+    else : 
+            
+            return render_template('dist/login.html',error_message='user not found (unknown email)')
+@app.route('/reset_password/<username>', methods=['GET', 'POST'])
+def reset_password(username):
+    # Step 3: Retrieve the user's email associated with the provided username from the database
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM utilisateurs WHERE username = %s", (username,)) 
+    result = cursor.fetchone()
+    email = result[0] if result else None
+    print(email)
+    if email:
+        if request.method == 'POST':
+            # Step 5: Process the password reset form submission
+            new_password = request.form['pass']
+            confirm_password = request.form['new_pass']
+
+            if new_password == confirm_password:
+                # Update the user's password in the database
+                update_query = "UPDATE Utilisateurs SET password = %s WHERE username = %s"
+                cursor.execute(update_query, (new_password, username))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                success_message = "Password changed successfully!"
+                return redirect(url_for('start', success_message=success_message))
+            else:
+                cursor.close()
+                conn.close()
+                error_message = 'Passwords do not match.'
+                return render_template('dist/forget.html',username=username, error_message=error_message)
+        else:
+            cursor.close()
+            conn.close()
+            return render_template('dist/forget.html', username=username)
     else:
-        # Username doesn't exist, display an error message
-        cursor.close()
-        conn.close()
-        print('no matching for the usernam')
-        return render_template('dist/forget.html')
+        return render_template('forget.html')
+    
+def Send_Reset(recipient_email, Username):
+    # Create the email headers
+    sender_email = "voicestorykidsstory@gmail.com"
+    sender_password = "lohlwfqevcdifnpr"
+    subject = 'Reset Password'
+    headers = f"From: {sender_email}\r\nTo: {recipient_email}\r\nSubject: {subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html\r\n"
+    
+    with app.app_context():
+        reset_password_link = url_for('reset_password', username=Username, _external=True)
+    
+    # Create the body of the email
+    body = f'''
+    <html>
+    <body>
+        <h1>Reset Password</h1>
+        <p>Dear {Username},</p>
+        <p>Please click the following link to reset your password:</p>
+        <p><a href="{reset_password_link}">{reset_password_link}</a></p>
+        <p>If you are not responsible for this action, please ignore this message.</p>
+    </body>
+    </html>
+    '''
+  
+    # Create the full email message
+    email_message = headers + "\r\n" + body
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = '587'
+    
+    try:
+        # Create an SMTP session
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            # Start TLS encryption if needed
+            server.starttls()
+            # Login to the SMTP server
+            server.login(sender_email, sender_password)
+            # Send the email
+            server.sendmail(sender_email, recipient_email, email_message.encode('utf-8'))
+        print("Email sent successfully!")
+    except Exception as e:
+        print("An error occurred while sending the email:", str(e))
 
     
 @app.route('/home')
@@ -426,9 +533,6 @@ def signup():
 @app.route('/T')
 def T():
     return render_template("dist/page2.html")
-@app.route('/f')
-def f():
-    return render_template("dist/forget.html")
 @app.route('/')
 def start():
     success_message =request.args.get('success_message')
@@ -495,7 +599,30 @@ def wait():
 @app.route('/suc')
 def suc():
     return render_template('dist/SUCCESS.html')
+def add_to_database(user_id,chemin_fichier,texte):
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password) 
+    cursor = conn.cursor() 
+    cursor.execute("SELECT username FROM utilisateurs WHERE id_utilisateur = %s", (user_id,))
+    result = cursor.fetchone()
+    if result:
+        nom_utilisateur = result[0]  # Récupérer le nom de l'utilisateur
+    else:
+        nom_utilisateur = 'John Doe'
 
+    chiffre_aleatoire = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+    nom_fichier = nom_utilisateur.replace(" ", "") + chiffre_aleatoire + '.wav'
+    cursor.execute("SELECT id_histoire FROM histoires WHERE texte = %s",(texte,))
+    result = cursor.fetchone()
+    if result:
+        id_histoire = result[0]
+    else:
+        id_histoire = None
+    cursor.execute("INSERT INTO clone (id_utilisateur, chemin_fichier, nom_file, id_histoire) VALUES (%s, %s, %s, %s)", (user_id, chemin_fichier, nom_fichier, id_histoire))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("L'insertion dans la table clone a été effectuée avec succès !")
+    return
 @app.route('/Story', methods=['GET'])
 def upload_file():
     global SelectedOption1, SelectedOption2, Text_data
@@ -513,15 +640,22 @@ def upload_file():
         if file_remove in filenames1 :
             filenames1.remove(file_remove)
         print(filenames1)
-        conn.close() 
-        send_text_to_speech_api(XI_API_KEY, Text_data, filenames1,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)  
+        conn.close()   
         response = send_text_to_speech_api(XI_API_KEY, Text_data, filenames1,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)  
+        response2 = copy.copy(response)
         OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'templates/dist/output')  
-        output_path = os.path.join(OUTPUT_DIR, 'voice.wav')    
+        output_path1 = os.path.join(OUTPUT_DIR, 'voice.wav') 
+        output_filename = str(uuid.uuid4()) + '.wav'   
+        output_path = os.path.join(OUTPUT_DIR, output_filename) 
+        add_to_database(user_id,output_path,Text_data)
         with open(output_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                      if chunk:
                         f.write(chunk)   
+        with open(output_path1, 'wb') as f:
+                    for chunk in response2.iter_content(chunk_size=CHUNK_SIZE):
+                     if chunk:
+                        f.write(chunk)                  
 
         return render_template('dist/SUCCESS.html')
 
@@ -532,7 +666,6 @@ def upload_file():
             if file_remove in filenames :
                 filenames.remove(file_remove)
             print(filenames)
-            send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
             response = send_text_to_speech_api(XI_API_KEY, Text_data, filenames,selectedgender=SelectedOption1,selectedaccent=SelectedOption2)
             empty_records_folder(records_dir)
             OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'templates/dist/output')
@@ -551,7 +684,9 @@ def empty_records_folder(records1dir):
             os.remove(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
-
+@app.route('/h')
+def h():
+    return render_template('dist/mes_histoires.html')
 @app.route('/get_data', methods=['POST'])
 def process_send():
     global Text_data
@@ -563,6 +698,7 @@ def process_send():
     }
     print(response)
     return jsonify(response)
+
 
 if __name__ == '__main__':
      
