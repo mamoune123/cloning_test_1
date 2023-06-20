@@ -529,7 +529,7 @@ def signup():
     conn.close()
 
     # Redirect or render a success page
-    return render_template('dist/login.html')
+    return redirect(url_for('bien_inscrit'))
 @app.route('/T')
 def T():
     return render_template("dist/page2.html")
@@ -684,6 +684,9 @@ def empty_records_folder(records1dir):
             os.remove(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
+@app.route('/bien_inscrit')
+def bien_inscrit():
+    return render_template('dist/inscritreussie.html')
 @app.route('/h')
 def h():
     return render_template('dist/mes_histoires.html')

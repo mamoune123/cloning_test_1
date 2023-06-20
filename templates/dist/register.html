@@ -56,7 +56,7 @@
 						<span toggle="#confirm-password-field" class="fa fa-fw fa-eye field-icon toggle-password"></span>
 					  </div>
 					  <div class="form-group">
-						<button type="submit" class="form-control btn btn-primary rounded submit px-3">Sign up</button>
+						<button type="submit" class="form-control btn btn-primary rounded submit px-3" onclick="redirectToSuccessPage()">Sign up</button>
 					</div>
 					{% if error_message %}
     						<div class="alert alert-danger">
@@ -72,7 +72,14 @@
 			</div>
 		</div>
 	</section>
-
+	<script>
+		function redirectToSuccessPage() {
+		  // Perform any necessary form validation or submission logic here
+	  
+		  // Redirect to the success page after submitting the form
+		  window.location.href = "/bien_inscrit";
+		}
+	  </script>
 	<script src="js/jquery.min.js"></script>
   <script src="js/popper.js"></script>
   <script src="js/bootstrap.min.js"></script>
