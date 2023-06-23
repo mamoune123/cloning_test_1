@@ -5,7 +5,7 @@ Go to pgAdmin 4 (you need to use postgresql 15) <br>
 
 ![image](https://github.com/mamoune123/cloning_test_1/assets/128436550/6d570fe8-788e-4e31-9097-4b82af1409ab)
 
-2-Then you ll need to restore it the VoiceStory.sql in it 
+2-Then you ll need to restore it the VoiceStoryDB.sql in it 
 
 ![image](https://github.com/mamoune123/cloning_test_1/assets/128436550/0ff2cdf5-b6e3-405f-b8ce-9cb7743aecab)
  
