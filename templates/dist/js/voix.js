@@ -198,7 +198,7 @@ function updateSelected(voixId, selected) {
   storyButton.addEventListener('click', function() {
     send3Data(storedText);
   });
-
+//envoie du texte de l'histoire selectionner au serveur flask route 'get_date'
   function send3Data(text) {
     $.ajax({
       type: 'POST',
@@ -215,7 +215,7 @@ function updateSelected(voixId, selected) {
     });
   }
   
-
+//play / pause the audio element
   function toggleplay(audioId) {
     var audioElement = document.getElementById(audioId);
     var sourceElement = audioElement.getElementsByTagName('source')[0];

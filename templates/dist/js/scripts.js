@@ -83,7 +83,7 @@ function handleSelectionChange() {
       console.log("Sending data to Flask...");
     });
 
-    function send2Data(selectedOption,selectedOption1) {
+    function send2Data(selectedOption,selectedOption1) { //envoie au serveur flask les informations de selections
       $.ajax({
         type: 'POST',
         url: '/save_selection',

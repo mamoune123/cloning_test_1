@@ -15,14 +15,14 @@ from bs4 import BeautifulSoup
 import copy
 XI_API_KEY = "067b3f82874d1f95f8ba0945f192d5bd"
 
-def sendEmail(recipient_email,updated_content):
+def sendEmail(recipient_email,updated_content): #Fonction d'envoie d'email de bienvenue
     # Create the email headers
     sender_email = "voicestorykidsstory@gmail.com"
     sender_password = "lohlwfqevcdifnpr"
     subject = 'Registration Succesful to VoiceStory, Welcome !!'
     headers = f"From: {sender_email}\r\nTo: {recipient_email}\r\nSubject: {subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html\r\n"
     html_file = '/Users/mac/Desktop/Cloning_test/templates/dist/EMAIL.html'
-    with open(html_file,'r') as file : 
+    with open(html_file,'r') as file : #La page de bienvenue
         data = file.read()
     
     htmlc = transform(data)
@@ -39,7 +39,7 @@ def sendEmail(recipient_email,updated_content):
     email_message = headers + "\r\n" + updated_html
     smtp_server = 'smtp.gmail.com'
     smtp_port = '587'
-
+    #Configuration du serveur smtp
 
     try:
         # Create a SMTP session
@@ -62,7 +62,7 @@ def models_imp(XI_API_KEY):
   }
     response = requests.get(url, headers=headers)
     return response
-def send_text_to_speech_api(XI_API_KEY, text, filenames,selectedgender,selectedaccent):   
+def send_text_to_speech_api(XI_API_KEY, text, filenames,selectedgender,selectedaccent):   #Fonction pour envoyer les informations qu'il faut pour l'API ELEVENLAB
     url = f"https://api.elevenlabs.io/v1/voices/add"
         
     headers = {
@@ -135,28 +135,28 @@ SelectedOption2 = ''
 Text_data = ''
 CHUNK_SIZE = 1024
 app.secret_key = 'supersecretkey'
-app.config['records']='/Users/mac/Desktop/Cloning_test/records'
+app.config['records']='/Users/mac/Desktop/Cloning_test/records' 
 app.config['mes_voix']='/Users/mac/Desktop/Cloning_test/templates/dist/mes_voix'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'wma', 'au', 'aiff', 'm4a'}
 db_host = 'localhost'
 db_port = 5432 
 db_name = 'VoiceStory'
-db_user = 'postgres'
-db_password = '1234'
+db_user = 'postgres'    #A changer si different dans votre base de donnée (Utiliser POSTGRES)
+db_password = '1234'    #ca aussi
 
 
-@app.route('/update_selected', methods=['POST'])
+@app.route('/update_selected', methods=['POST']) 
 def update_selected():
-    data = request.get_json()
-    voix_id = data['voixId']
-    selected = data['selected']
-    user_id = session.get('user_id') 
+    data = request.get_json() 
+    voix_id = data['voixId'] #Extraction des valeurs des clés 'voixId' et 'selected' à partir des données.
+    selected = data['selected']  
+    user_id = session.get('user_id') #Récupération de l'identifiant de l'utilisateur à partir de la session.
 
-    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password) #Fonction de connection a la base de données
     print(selected)
     try:
         cursor = conn.cursor()
-        cursor.execute("UPDATE voix SET selected = %s WHERE id_voix = %s AND id_utilisateur = %s;", (selected,voix_id, user_id))
+        cursor.execute("UPDATE voix SET selected = %s WHERE id_voix = %s AND id_utilisateur = %s;", (selected,voix_id, user_id))#Mise a jours de la table voix
         conn.commit()
         return jsonify({'message': 'selected status updated'})
     except psycopg2.Error as e:
@@ -165,7 +165,7 @@ def update_selected():
     
     
 
-@app.route('/delete-file', methods=['POST'])
+@app.route('/delete-file', methods=['POST']) 
 def delete_file():
     data = request.get_json()
     file_name = data['fileName']
@@ -196,19 +196,19 @@ def delete_file():
     return '', 200
 
 
-@app.route('/fav')
+@app.route('/fav') #toute les fonctions qui sont simple comme ca c'est pour afficher les templates avec jinja2
 def fav():
     return render_template('dist/favoris.html')
 
 
-@app.route('/update_favorite', methods=['POST'])
+@app.route('/update_favorite', methods=['POST']) #Pour la mise a jours de la table favoris et donc sauvegarder pour l'utilisateur ces choix
 def update_favorite():
     favorite_id = request.json.get('favoriteId')
     is_favorite = request.json.get('isFavorite')
     user_id = session.get('user_id') 
     print(user_id)
 
-    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
+    conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)#connection a la base de donées
     try:
         cursor = conn.cursor()
         cursor.execute("UPDATE favoris SET is_favori = %s WHERE id_histoire = %s AND id_utilisateur = %s;", (is_favorite, favorite_id, user_id))
@@ -218,16 +218,16 @@ def update_favorite():
         conn.rollback()
         return jsonify({'error': 'Failed to update favorite status'})
     
-@app.route('/recoute/<id_clone>')
+@app.route('/recoute/<id_clone>') #fonction pour l'historique
 def recoute(id_clone):
     user_id = session.get('user_id')
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     try:
         cursor = conn.cursor()
-        if user_id :
+        if user_id : #si l'utilisateur est connecter
             cursor.execute("SELECT c.id_clone, c.chemin_fichier, h.titre, h.texte FROM clone c INNER JOIN histoires h ON c.id_histoire = h.id_histoire AND c.id_clone=%s;", (id_clone,))
-            results = cursor.fetchall()
-            ecoute_data = [{'chemin_fichier':ec[1],'titre':ec[2], 'texte':ec[3]} for ec in results]    
+            results = cursor.fetchall() #collecte des informations de la base de données
+            ecoute_data = [{'chemin_fichier':ec[1],'titre':ec[2], 'texte':ec[3]} for ec in results]  #mettre ces données dans le dictionnaire Json ecoute_date
             return render_template("dist/recoute.html",ecoute_data=ecoute_data)
     except psycopg2.Error as e:
         conn.rollback()
@@ -236,7 +236,7 @@ def recoute(id_clone):
 @app.route('/c')
 def c():
 
-    return render_template("dist/comptes.html")
+    return render_template("dist/comptes.html")#affichage de la partie histoires
 
 @app.route ('/voice_card')
 def voice_card():
@@ -261,7 +261,7 @@ def voice_card():
 
 
 
-@app.route('/comptes',methods=['GET'])
+@app.route('/comptes',methods=['GET'])#Fonction qui permet de recolter les informations sur les histoires de la base de donées
 def get_histoires():
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     user_id = session.get('user_id') if 'user_id' in session else None
@@ -291,7 +291,7 @@ def get_histoires():
         cursor.close()
         conn.close()        
 # get voice 
-@app.route('/voixget')
+@app.route('/voixget') #fonction qui permet la recolte des infos sur la voix de l'utilisateur et donc permetre de les recuperers apres
 def voixge():
     user_id = session.get('user_id')
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
@@ -301,7 +301,7 @@ def voixge():
     voix_data = [{'id_voix' : voi[0], 'chemin_fichier': voi[2],'nom_file': voi[3], 'date_ajout': voi[4], 'selected':voi[5]} for voi in voix]
     return jsonify({'voix': voix_data})
 
-@app.route('/voix1')
+@app.route('/voix1')#si on accedere depuis une histoires il y'a le bouton generate story
 def voix1():
     show_button = True 
     if 'show_button1' in request.args:
@@ -325,11 +325,11 @@ def voix1():
 
     return render_template('dist/mes_voix.html', show_button=show_button, message=message)
 
-@app.route('/voix')
+@app.route('/voix') #si on accede depuis le page Themes y'a pas de bouton generate
 def voix():
     show_button1 = False
     return redirect(url_for('voix1',show_button1=show_button1))
-@app.route('/page2', methods=['GET'])
+@app.route('/page2', methods=['GET'])#fonction qui permet de generer les cartes des themes grace a la collecte d'informations de la base de données
 def get_themes():
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     try:
@@ -348,10 +348,10 @@ def get_themes():
     finally:
         cursor.close()
         conn.close()
-@app.route('/f')
+@app.route('/f')#Route pour la page forget.html
 def f():
     return render_template("dist/forget.html")
-@app.route('/reset', methods=['POST'])
+@app.route('/reset', methods=['POST']) #fonction qui part l'entrer de l'email envoie un mail de reset password
 def reset():
     email = request.form['email_reset']
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
@@ -361,14 +361,14 @@ def reset():
     if result : 
             username = result[0]
             print(username)
-            Send_Reset(email,username)
+            Send_Reset(email,username)#fonction qui envoie le mail de reset password
             return render_template('dist/login.html',error_message='Email sent Successfully')
     else : 
             
             return render_template('dist/login.html',error_message='user not found (unknown email)')
-@app.route('/reset_password/<username>', methods=['GET', 'POST'])
+@app.route('/reset_password/<username>', methods=['GET', 'POST'])#route pour la renitialisation du motdepasse
 def reset_password(username):
-    # Step 3: Retrieve the user's email associated with the provided username from the database
+    #  Retrieve the user's email associated with the provided username from the database
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password)
     cursor = conn.cursor()
     cursor.execute("SELECT email FROM utilisateurs WHERE username = %s", (username,)) 
@@ -377,7 +377,7 @@ def reset_password(username):
     print(email)
     if email:
         if request.method == 'POST':
-            # Step 5: Process the password reset form submission
+            #  Process the password reset form submission
             new_password = request.form['pass']
             confirm_password = request.form['new_pass']
 
@@ -402,7 +402,7 @@ def reset_password(username):
     else:
         return render_template('forget.html')
     
-def Send_Reset(recipient_email, Username):
+def Send_Reset(recipient_email, Username): # Ce que recoie dans l'utilisateur dans la messagerie
     # Create the email headers
     sender_email = "voicestorykidsstory@gmail.com"
     sender_password = "lohlwfqevcdifnpr"
@@ -410,7 +410,7 @@ def Send_Reset(recipient_email, Username):
     headers = f"From: {sender_email}\r\nTo: {recipient_email}\r\nSubject: {subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html\r\n"
     
     with app.app_context():
-        reset_password_link = url_for('reset_password', username=Username, _external=True)
+        reset_password_link = url_for('reset_password', username=Username, _external=True) #grace l'url_for creation du liens de reset password avec le nom d'utilisateur dans le liens
     
     # Create the body of the email
     body = f'''
@@ -447,7 +447,7 @@ def Send_Reset(recipient_email, Username):
 @app.route('/home')
 def home():
     return render_template("dist/HOME.html")
-@app.route('/login1', methods=['POST'])
+@app.route('/login1', methods=['POST'])#Connection de l'utilisateur
 def login1():
     # Get form data
     email = request.form['email']
@@ -529,7 +529,7 @@ def signup():
     conn.close()
 
     # Redirect or render a success page
-    return redirect(url_for('bien_inscrit'))
+    return redirect(url_for('bien_inscrit')) #apres bonne inscription on est redirecter vers la route bien_inscrit qui elle dirige vers la page de succes
 @app.route('/T')
 def T():
     return render_template("dist/page2.html")
@@ -599,7 +599,7 @@ def wait():
 @app.route('/suc')
 def suc():
     return render_template('dist/SUCCESS.html')
-def add_to_database(user_id,chemin_fichier,texte):
+def add_to_database(user_id,chemin_fichier,texte): #fonction permet de nommer les histoires clonner et sauvegarder dans la base de données
     conn = psycopg2.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password) 
     cursor = conn.cursor() 
     cursor.execute("SELECT username FROM utilisateurs WHERE id_utilisateur = %s", (user_id,))
@@ -609,7 +609,7 @@ def add_to_database(user_id,chemin_fichier,texte):
     else:
         nom_utilisateur = 'John Doe'
 
-    chiffre_aleatoire = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+    chiffre_aleatoire = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4)) #nommage de l'histoire clonnées
     nom_fichier = nom_utilisateur.replace(" ", "") + chiffre_aleatoire + '.wav'
     cursor.execute("SELECT id_histoire FROM histoires WHERE texte = %s",(texte,))
     result = cursor.fetchone()
@@ -618,13 +618,13 @@ def add_to_database(user_id,chemin_fichier,texte):
     else:
         id_histoire = None
     cursor.execute("INSERT INTO clone (id_utilisateur, chemin_fichier, nom_file, id_histoire) VALUES (%s, %s, %s, %s)", (user_id, chemin_fichier, nom_fichier, id_histoire))
-    conn.commit()
+    conn.commit()#insertion des valeurs au dessus dans la base de données
     cursor.close()
     conn.close()
     print("L'insertion dans la table clone a été effectuée avec succès !")
     return
 @app.route('/Story', methods=['GET'])
-def upload_file():
+def upload_file():#Fonction qui Recolte et envoie tout ce dont l'api ELEVENLAB a besoin
     global SelectedOption1, SelectedOption2, Text_data
     url = f"https://api.elevenlabs.io/v1/voices/add"
     records_dir = app.config['records']
@@ -647,8 +647,8 @@ def upload_file():
         output_path1 = os.path.join(OUTPUT_DIR, 'voice.wav') 
         output_filename = str(uuid.uuid4()) + '.wav'   
         output_path = os.path.join(OUTPUT_DIR, output_filename) 
-        add_to_database(user_id,output_path,Text_data)
-        with open(output_path, 'wb') as f:
+        add_to_database(user_id,output_path,Text_data) #Ajout a la base de donées le nouveau fichier clonnées
+        with open(output_path, 'wb') as f: #Creations du fichier audio grace a la response de l'API d'ElevenLabs qui est un fichier Json
                     for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                      if chunk:
                         f.write(chunk)   
@@ -684,13 +684,13 @@ def empty_records_folder(records1dir):
             os.remove(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
-@app.route('/bien_inscrit')
+@app.route('/bien_inscrit') 
 def bien_inscrit():
     return render_template('dist/inscritreussie.html')
 @app.route('/h')
 def h():
     return render_template('dist/mes_histoires.html')
-@app.route('/get_data', methods=['POST'])
+@app.route('/get_data', methods=['POST'])# permet la recolte du texte de l'histoire
 def process_send():
     global Text_data
     data = request.get_json()

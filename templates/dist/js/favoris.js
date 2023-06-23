@@ -62,7 +62,7 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
   
-  // Function to generate the HTML structure for the cards
+  // Function to generate the HTML structure for the cards Story
   function generateCardHTML(histoire) {
     return `
     
@@ -94,11 +94,11 @@ window.addEventListener('DOMContentLoaded', event => {
  `;
   }  
  
-
+//Permet de generer les nouvelles selections fait par l'utilisateur pour les favoris
   function submitForm(e) {
     e.preventDefault();
 
-    const checkbox = e.target;
+    const checkbox = e.target; 
     const isFavorite = checkbox.checked; 
     const favoriteId = checkbox.value;
     console.log(favoriteId);
@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', event => {
     .then(response => response.json())
     .then(data => console.log(data))
     .catch(error => console.log(error));
-    
+    // ET donc selon  la valeur de la checkbox l'histoire et oui ou non favoris
   }
  
   
@@ -149,20 +149,20 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
 
-fetch('/comptes')
+fetch('/comptes') //recolte des informations d'apres le serveur flask qui est sous forme d'un json
   .then(response => response.json())
   .then(data => {
     console.log('Received data:', data);
     const histoires = data.histoires;
     const filteredHistoires = histoires.filter(histoire => histoire.is_favori === true);
     console.log('Histoires:', histoires);
-    container.innerHTML = generateCardContainerHTML(filteredHistoires);
+    container.innerHTML = generateCardContainerHTML(filteredHistoires); //filtrer les histoires par valeur de favoris 'TRUE'
     filteredHistoires.forEach((histoire) => {
       const generateBtn = document.getElementById(histoire.id_histoire);
       generateBtn.addEventListener('click', function() {
         const text = histoire.texte;
         localStorage.setItem('storyText', text);
-        window.location.href = '/voix1';
+        window.location.href = '/voix1'; //Une fois cliquer sur le bouton generateBtn on est rediriger a la page de voix
       });
     });
   })

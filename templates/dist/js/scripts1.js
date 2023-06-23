@@ -53,31 +53,6 @@ window.addEventListener('DOMContentLoaded', event => {
 
 });
 
-
-
-// const themes =[
-//   {
-//     name: 'comptes et autres',
-//     image:'/img/duck.png',
-//   },
-//   {
-//     name: 'fable mythe et literature',
-//     image:'/img/duck.png',
-//   },
-//   {
-//     name: 'heroine et heros',
-//     image:'/img/duck.png',
-//   },
-//   {
-//     name: 'les animaux',
-//     image:'/img/duck.png',
-//   }
-// ];
-
-
-
-
-
   
   // Function to generate the HTML structure for the cards
   function generateCardHTML(theme) {
@@ -96,7 +71,7 @@ window.addEventListener('DOMContentLoaded', event => {
  `;
   }
   function saveTheme(themeName) {
-    localStorage.setItem('selectedTheme', themeName);
+    localStorage.setItem('selectedTheme', themeName); //Enregistrer la selection du thèmes pour generer les cartes selon le thèmes sélectionner
   }
   
   // Function to generate the card container

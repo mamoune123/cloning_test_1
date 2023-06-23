@@ -66,7 +66,7 @@ function extractRelativePath(fullPath) {
   // Return the fullPath as is if it doesn't start with the parentPath
   return fullPath;
 }
-
+//Generation des histoires clonnées
 function generateCardHTML(histoire) {
   return `
   
@@ -95,7 +95,7 @@ function generateCardContainerHTML(histoires) {
  
 
 
-fetch('/voice_card')
+fetch('/voice_card')//recolte des histoires clonnées
   .then(response => response.json())
   .then(data => {
     console.log('Received data:', data); // Add this logging statement

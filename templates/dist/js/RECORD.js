@@ -72,8 +72,8 @@ function handleSelectionChange() {
 
 
 
-///-------------
-
+///-------------Enregistrement de voix en ligne
+///Utilisation de l'api NAVIGATOR MEDIA 
     navigator
         .mediaDevices
         .getUserMedia({audio: true})
@@ -95,7 +95,7 @@ function handleSelectionChange() {
       
       console.log("Sending data to Flask...");
       var filename = document.getElementById('file-name1').value;
-      let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
+      let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'}); // mettre l'element enregistrer dans une fichier BLOB
       var blob2 = blob.slice();
       blob2.name = filename + '.mp3';
       blob.name = filename + '.mp3';
@@ -105,7 +105,7 @@ function handleSelectionChange() {
       window.location.href= "/T";
     });
     
-    function sendData(data,data1) {
+    function sendData(data,data1) { //envoie du fichier au serveur flask pour la stocker dans la table voix
          var filename = data.name;
          var filename1 = data1.name;
         var form = new FormData();

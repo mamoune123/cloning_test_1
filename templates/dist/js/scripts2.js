@@ -52,7 +52,7 @@ window.addEventListener('DOMContentLoaded', event => {
     });
 
 });
-$(document).ready(function() {
+$(document).ready(function() { //Cette fonction attend la response de l'API pour rediriger l'utilisateur vers la page de succes
     $.ajax({
       url: "/Story",
       method: "GET",
